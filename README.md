@@ -1,2 +1,3 @@
 # bfa
-Binary Factor Analysis: a dimensionality reduction tool for noisy, high throughput single cell genomic data
+
+[Binary Factor Analysis (BFA) and Binary PCA](https://github.com/ucdavis/quontitativebiology/tree/master/bfa) - These are tools for performing dimensionality reduction in large scRNA-seq datasets, as described in: Li, R., Quon, G. (2018) Gene detection models outperform gene expression for large-scale scRNA-seq analysis. bioRxiv doi: https://doi.org/10.1101/454629.
