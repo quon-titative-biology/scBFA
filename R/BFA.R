@@ -1,5 +1,5 @@
 #' This function should be called to initialize input parameters into the
-#' main bfa function
+#' main scbfa function
 #'
 #' @return A model environment containing the following parameters:
 #' {A,Z,V,U,\eqn{\beta},\eqn{\gamma},\eqn{\epsilon}}.
@@ -381,7 +381,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #'## run BFA with raw count matrix
 #'
-#'bfa_model = bfa(scData = GeneExpr,X = scale(X),numFactors =2)
+#'bfa_model = scbfa(scData = GeneExpr,X = scale(X),numFactors =2)
 #'
 #'## Create Seurat object for input to BFA
 #'
@@ -389,7 +389,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #'## Standardize the covariate matrix should be a default operation
 #'
-#'bfa_model = bfa(scData = scData, X = scale(X), numFactors = 2)
+#'bfa_model = scbfa(scData = scData, X = scale(X), numFactors = 2)
 #'
 #'## Build the SingleCellExperiment object for input to BFA
 #'
@@ -399,7 +399,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #'## Standardize the covariate matrix should be a default operation
 #'
-#'bfa_model = bfa(scData = sce, X = scale(X), numFactors = 2)
+#'bfa_model = scbfa(scData = sce, X = scale(X), numFactors = 2)
 #'
 #'## examples to show visualization
 #'
@@ -408,7 +408,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #' @keywords export
 #' @export
-bfa <- function(scData,
+scbfa <- function(scData,
                 numFactors,
                 X=NULL,
                 Q = NULL,
@@ -466,7 +466,7 @@ bfa <- function(scData,
 #'
 #' @examples
 #' GeneExpr = matrix(rpois(49,1),7,7)
-#' bfa_model = bfa(scData = GeneExpr,X = NULL,numFactors =2)
+#' bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
 #' Z = getScore(bfa_model)
 #' @keywords export
 #' @export
@@ -480,7 +480,7 @@ getScore <- function(modelEnv){return(modelEnv$ZZ)}
 #'
 #' @examples
 #' GeneExpr = matrix(rpois(49,1),7,7)
-#' bfa_model = bfa(scData = GeneExpr,X = NULL,numFactors =2)
+#' bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
 #' A = getLoading(bfa_model)
 #' @keywords export
 #' @export

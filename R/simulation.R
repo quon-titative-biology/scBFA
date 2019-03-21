@@ -8,23 +8,24 @@
 #'
 #' @param zinb a ZINB-WaVE object representing ZINB-WaVE fit
 #' to real data to get realistic simulation parameters
-#' @param celltype a factor to specify the ground-truth cell types
-#' for original dataset, since we filter out some simulated cells due to low
-#' amount of genes detected in that cell,
+#' @param celltype a factor to specify the ground-truth cell types in the 
+#' original dataset that the parameter of zinb object is fit to.
+#' Since we filter out some simulated cells due to low amount of genes detected
+#' in that cell,
 #' we subset the ground truth cell types correspondingly
 #' @param disper numeric value, parameter to control the size factor
 #' \eqn{r} in \eqn{NB(\mu, r)}.
-#' r is varied from 0.5,1 and 5 in our simulation(as outlined in our paper)
+#' r is varied in the set {0.5,1,5} in our simulation(as outlined in our paper)
 #' @param var_count numeric value, parameter to control the noise level
 #' added to a common embedding space to generate gene count matrix.
 #' This parameter is formulated as \eqn{\sigma_\mu}
-#' and is varied in 0.1 0.5 1 2 3
+#' and and in the paper is selected from the set {0.1, 0.5, 1, 2, 3}
 #' @param var_dropout numeric value, parameter to control the noise level added
 #' to a common embedding space for to generate gene detection matrix.
 #' This parameter is formulated as \eqn{\sigma_\pi}
-#' and is varied in 0.1 0.5 1 2 3
+#' and in the paper is selected from the set {0.1, 0.5, 1, 2, 3}
 #' @param delta intercept to control the overall gene detection rate.
-#' In our simulation, this value is varied in -2 -0.5 1 2.5 4
+#' and in the paper is selected from the set {-2, -0.5, 1,2.5,4}
 #'
 #' @import zinbwave
 #' @import MASS

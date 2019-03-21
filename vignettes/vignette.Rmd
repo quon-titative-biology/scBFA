@@ -1,0 +1,176 @@
+---
+title: "Gene Detection Analysis for scRNA-seq"
+author: "Ruoxin Li, Gerald Quon"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Gene Detection Analysis for scRNA-seq}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r,echo = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+# Introduction
+
+This tutorial provides an example analysis for 
+modelling gene detection pattern as outlined in
+[R.Li et al, 2018](https://www.biorxiv.org/content/10.1101/454629v1). 
+The goal of this tutorial is to provide an overview of the cell type 
+classification and visualization tasks by learning a low dimensional embedding 
+through a class of gene detection models: that is BFA and Binary PCA.
+
+## Summary of workflow
+The following workflow summarizes a typical dimensionality reduction
+procedure performed by BFA or Binary PCA. 
+
+1. Data processing
+2. Dimensionality reduction
+3. Visualization
+
+## Installation
+
+Let's start with the installation 
+
+```R
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("scBFA")
+```
+
+next we can load dependent packages
+
+```{r,include=TRUE,results="hide",message=FALSE,warning=FALSE}
+library(zinbwave)
+library(MASS)
+library(SingleCellExperiment)
+library(Seurat)
+library(ggplot2)
+library(Rtsne)
+library(scBFA)
+```
+
+
+## Information of example dataset
+The example dataset is downloaded from 
+http://imlspenticton.uzh.ch/robinson_lab/conquer/data-mae/GSE48968-GPL13112.rds.
+After performing quality control procedure of genes and cells 
+(as outlined in the paper),
+we end up with 1059 cells. The genes selected for this analysis is 
+the top variant 2000 genes that are ranked by its variance in raw counts. 
+```{r}
+
+# raw counts matrix with rows are genes and columns are cells
+data("exprdata",package = "scBFA", envir = environment())
+
+# a vector specify the ground truth of cell types provided by conquer database
+data("celltype",package = "scBFA",envir = environment())
+
+
+```
+
+## Working with SingleCellExperiment class
+The design of BFA and Binary PCA allows three kinds of input object(scData):
+\begin{itemize}
+\item 1. A raw count matrix in which rows are genes and columns are cells. 
+\item 2. A SingleCellExperiment class which at least contains the raw count
+matrix 
+\item 3. A Seurat class which at least contains the raw count matrix
+\end{itemize}
+For illustration, here we construct a singleCellExperiment class to be the 
+input of BFA and Binary PCA.
+```{r}
+sce <- SingleCellExperiment(assay = list(counts = exprdata))
+```
+
+## Gene Detection Model analysis
+### Binary Factor Analysis
+Let $N$ stands for number of cells, $G$ stands for the number of genes, and $K$
+stands for the number of latent dimensions.
+
+A bfa model object computes the following 
+parameters after fitting the gene detection matrix.
+
+1. $Z$ is $N$ by $K$ embedding matrix and is named as "ZZ" in the model object
+2. $A$ is $G$ by $K$ loading matrix  and is named as "AA" in the model object
+3. $\beta$ if there is cell-level covariates (e.g batch effect),
+$\beta$ is corresponding coefficient matrix and is named as "beta" in the model object
+4. $\gamma$ if there is gene-level covariates (e.g batch effect), 
+$\gamma$ is corresponding coefficient matrix and is named as "gamma" in the model object
+
+
+We choose 10 as number of latent dimensions and project the gene detection 
+matrix on the embedding space.
+```{r,include=TRUE,results="hide" }
+bfa_model = scbfa(scData = sce, numFactors = 10) 
+```
+
+We then visualize the low dimensional embedding of BFA in tSNE space.
+Points are colored by their corresponding cell types.
+
+```{r,fig.width=8, fig.height=6}
+set.seed(1)
+tsne_bfa = Rtsne(scale(bfa_model$ZZ),
+                initial_dims =10,perplexity =30,Steps = 5000)
+df = as.data.frame(tsne_bfa$Y)
+df$celltype = celltype
+
+p1 <- ggplot(df,aes(x = V1,y = V2,colour = celltype))
+p1 <- p1 + geom_jitter(size=2.5,alpha = 0.8) 
+colorvalue <- c("#43d5f9","#24b71f","#E41A1C", "#ffc935","#3d014c","#39ddb2",
+                "slateblue2","maroon","#f7df27","palevioletred1","olivedrab3",
+                "#377EB8","#5043c1","blue","aquamarine2","chartreuse4",
+                "burlywood2","indianred1","mediumorchid1")
+p1 <- p1 + xlab("tsne axis 1") + ylab("tsne axis 2") 
+p1 <- p1 + scale_color_manual(values = colorvalue)
+p1 <- p1 + theme(panel.background = element_blank(),
+                  legend.position = "right",
+                  axis.text=element_blank(),
+                  axis.line.x = element_line(color="black"),
+                  axis.line.y = element_line(color="black"),
+                  plot.title = element_blank()
+                   )
+p1
+```
+ 
+### Binary PCA 
+```{r}
+bpca = BinaryPCA(scData = sce) 
+```
+We then visualize the low dimensional embedding of Binary PCA in tSNE space.
+Points are colored by their corresponding cell types.
+```{r,fig.width=8, fig.height=6}
+set.seed(1)
+tsne_bpca = Rtsne(scale(bpca$x[,c(1:10)]),
+                initial_dims =10, perplexity = 30,Steps = 5000)
+
+df = as.data.frame(tsne_bpca$Y)
+df$celltype = celltype
+
+p1 <- ggplot(df,aes(x = V1,y = V2,colour = celltype))
+p1 <- p1 + geom_jitter(size=2.5,alpha = 0.8) 
+colorvalue <- c("#43d5f9","#24b71f","#E41A1C", "#ffc935","#3d014c","#39ddb2",
+                "slateblue2","maroon","#f7df27","palevioletred1","olivedrab3",
+                "#377EB8","#5043c1","blue","aquamarine2","chartreuse4",
+                "burlywood2","indianred1","mediumorchid1")
+p1 <- p1 + xlab("tsne axis 1") + ylab("tsne axis 2") 
+p1 <- p1 + scale_color_manual(values = colorvalue)
+p1 <- p1 + theme(panel.background = element_blank(),
+                legend.position = "right",
+                axis.text=element_blank(),
+                axis.line.x = element_line(color="black"),
+                axis.line.y = element_line(color="black"),
+                plot.title = element_blank()
+                )
+p1
+```
+
+## Session Info
+```{r}
+sessionInfo()
+```
