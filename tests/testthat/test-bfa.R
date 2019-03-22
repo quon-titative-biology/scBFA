@@ -25,6 +25,6 @@ test_that("bfa halts on numeric matrix input", {
 
 
     ## Build the scAlign class object and compute PCs
-    expect_error(bfa(scData = GeneExpr,X = scale(X),numFactors =2))
+    expect_error(scbfa(scData = GeneExpr,X = scale(X),numFactors =2))
 
 })
