@@ -355,7 +355,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #' Again, when there is no gene level covariate matrix,
 #' this value should be FALSE by default.
 #'
-#' @import zinbwave
+#' @importFrom zinbwave orthogonalizeTraceNorm
 #' @importFrom SummarizedExperiment assay
 #' @examples
 #'
