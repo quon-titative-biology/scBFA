@@ -8,7 +8,7 @@
 #'
 #' @param zinb a ZINB-WaVE object representing ZINB-WaVE fit
 #' to real data to get realistic simulation parameters
-#' @param celltype a factor to specify the ground-truth cell types in the 
+#' @param celltype a factor to specify the ground-truth cell types in the
 #' original dataset that the parameter of zinb object is fit to.
 #' Since we filter out some simulated cells due to low amount of genes detected
 #' in that cell,
@@ -31,8 +31,23 @@
 #' @import MASS
 #' @importFrom stats rbinom rnbinom rnorm
 #' @keywords export
+#'
 #' @export
-
+#' @examples
+#'
+#' ## load data
+#'
+#' data("zinb",package = "scBFA", envir = environment())
+#' data("celltype",package = "scBFA", envir = environment())
+#'
+#' scData = scNoiseSim(zinb = zinb,
+#'          celltype = celltype,
+#'          disper = 1,
+#'          var_dropout =1,
+#'          var_count = 1,
+#'          delta = 1)
+#' ls.str(scData)
+#'
 
 scNoiseSim = function(zinb,
                     celltype,
@@ -104,6 +119,6 @@ scNoiseSim = function(zinb,
 
     pseudoCounts =  pseudoCounts[useCell,useGene]
 
-    return(list(GeneExpr = t(pseudoCounts),celltype = celltype[useCell]))
+    return(list(exprdata = t(pseudoCounts),celltype = celltype[useCell]))
 
 }

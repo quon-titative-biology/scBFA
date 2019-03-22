@@ -57,22 +57,47 @@ library(scBFA)
 
 
 ## Information of example dataset
-The example dataset is downloaded from 
-http://imlspenticton.uzh.ch/robinson_lab/conquer/data-mae/GSE48968-GPL13112.rds.
-After performing quality control procedure of genes and cells 
-(as outlined in the paper),
-we end up with 1059 cells. The genes selected for this analysis is 
-the top variant 2000 genes that are ranked by its variance in raw counts. 
+The example dataset is generated from our scRNA-seq simulator. 
+As outlined in our paper, the true parameters are learned from a ZINB-WaVE
+model learned from fitting a real dataset 
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232
+After performing quality control procedure of genes and cells
+(as outlined in the paper), we filtered out genes that are undetected in more 
+than 99% of cells and remove cells that has in more than 99% genes undetected.
+we end up with 950 cells and 2000 genes
 ```{r}
 
 # raw counts matrix with rows are genes and columns are cells
-data("exprdata",package = "scBFA", envir = environment())
+data("zinb",package = "scBFA", envir = environment())
 
 # a vector specify the ground truth of cell types provided by conquer database
 data("celltype",package = "scBFA",envir = environment())
 
 
 ```
+## Simulate a raw count matrix and corresponding cell labels
+
+```{r,include=TRUE,message=FALSE}
+set.seed(1)
+
+scData = scNoiseSim(zinb = zinb,celltype = celltype,disper =5,var_dropout =0.1,
+            var_count = 1,
+            delta = -1)
+
+exprdata = scData$exprdata;
+
+celltype = scData$celltype;
+
+print(paste("dimensions of the expression profile:",
+            nrow(exprdata),"genes and",ncol(exprdata),"cells"))
+
+
+```
+
+
+
+
+
 
 ## Working with SingleCellExperiment class
 The design of BFA and Binary PCA allows three kinds of input object(scData):
@@ -99,14 +124,16 @@ parameters after fitting the gene detection matrix.
 1. $Z$ is $N$ by $K$ embedding matrix and is named as "ZZ" in the model object
 2. $A$ is $G$ by $K$ loading matrix  and is named as "AA" in the model object
 3. $\beta$ if there is cell-level covariates (e.g batch effect),
-$\beta$ is corresponding coefficient matrix and is named as "beta" in the model object
-4. $\gamma$ if there is gene-level covariates (e.g batch effect), 
-$\gamma$ is corresponding coefficient matrix and is named as "gamma" in the model object
+$\beta$ is corresponding coefficient matrix and is named as "beta" in 
+the model object
+4. $\gamma$ if there is gene-level covariates (e.g QC measures), 
+$\gamma$ is corresponding coefficient matrix and is named as "gamma" in 
+the model object
 
 
 We choose 10 as number of latent dimensions and project the gene detection 
 matrix on the embedding space.
-```{r,include=TRUE,results="hide" }
+```{r,include=TRUE,results="hide",message=FALSE}
 bfa_model = scbfa(scData = sce, numFactors = 10) 
 ```
 
@@ -114,7 +141,7 @@ We then visualize the low dimensional embedding of BFA in tSNE space.
 Points are colored by their corresponding cell types.
 
 ```{r,fig.width=8, fig.height=6}
-set.seed(1)
+set.seed(5)
 tsne_bfa = Rtsne(scale(bfa_model$ZZ),
                 initial_dims =10,perplexity =30,Steps = 5000)
 df = as.data.frame(tsne_bfa$Y)
@@ -145,7 +172,7 @@ bpca = BinaryPCA(scData = sce)
 We then visualize the low dimensional embedding of Binary PCA in tSNE space.
 Points are colored by their corresponding cell types.
 ```{r,fig.width=8, fig.height=6}
-set.seed(1)
+set.seed(5)
 tsne_bpca = Rtsne(scale(bpca$x[,c(1:10)]),
                 initial_dims =10, perplexity = 30,Steps = 5000)
 
