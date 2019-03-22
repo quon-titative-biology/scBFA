@@ -1,3 +1,3 @@
-# bfa
+# scBFA
 
-[Binary Factor Analysis (BFA) and Binary PCA](https://github.com/ucdavis/quontitativebiology/tree/master/bfa) - These are tools for performing dimensionality reduction in large scRNA-seq datasets, as described in: Li, R., Quon, G. (2018) Gene detection models outperform gene expression for large-scale scRNA-seq analysis. bioRxiv doi: https://doi.org/10.1101/454629.
+Single cell Binary Factor Analysis (scBFA) and Binary PCA - These are tools for performing dimensionality reduction in large scRNA-seq datasets, as described in: Li, R., Quon, G. (2018) Gene detection models outperform gene expression for large-scale scRNA-seq analysis. bioRxiv doi: https://doi.org/10.1101/454629.
