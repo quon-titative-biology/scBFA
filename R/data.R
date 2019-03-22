@@ -3,16 +3,18 @@
 #' A vector contains the cell types  as labels for cells in
 #' example scRNA-seq dataset(exprdata)
 #'
-#' @format A vector contains 15 cell types with its length 1059
-#' @source \url{http://imlspenticton.uzh.ch/robinson_lab/conquer/data-mae/GSE48968-GPL13112.rds}
+#' @format A vector contains 4 cell types with its length 950
+#' @source \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
 "celltype"
 
 
-#' Processed scRNA-seq expression profile of dendritic dataset
+#' A zinb object after fitting a ZINB-WaVE on cDC/pre-DC dataset
 #'
-#' A gene count matrix with its rows are genes and columns are cells. The entry
-#' of the matrix stands for the abundance of mRNA  in certain cell.
+#' A zinb model object contains all the parameters of ZINB-WaVE model after
+#' fitting dentritic dataset on
+#' https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232
+#
 #'
-#' @format A matrix with interger entries and have 2000 rows and 1059 columns
-#' @source \url{http://imlspenticton.uzh.ch/robinson_lab/conquer/data-mae/GSE48968-GPL13112.rds}
-"exprdata"
+#' @format A ZinbModel object contains all the parameters of ZINB-WaVE
+#' @source \url{https://github.com/drisso/zinbwave}
+"zinb"
