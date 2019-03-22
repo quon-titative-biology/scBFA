@@ -4,9 +4,9 @@
 \name{celltype}
 \alias{celltype}
 \title{Cell types as labels of example scRNA-seq dataset(exprdata)}
-\format{A vector contains 15 cell types with its length 1059}
+\format{A vector contains 4 cell types with its length 950}
 \source{
-\url{http://imlspenticton.uzh.ch/robinson_lab/conquer/data-mae/GSE48968-GPL13112.rds}
+\url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
 }
 \usage{
 celltype

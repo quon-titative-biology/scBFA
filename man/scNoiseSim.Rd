@@ -12,7 +12,7 @@ scNoiseSim(zinb, celltype, disper, var_dropout = 1, var_count = 1,
 \item{zinb}{a ZINB-WaVE object representing ZINB-WaVE fit
 to real data to get realistic simulation parameters}
 
-\item{celltype}{a factor to specify the ground-truth cell types in the 
+\item{celltype}{a factor to specify the ground-truth cell types in the
 original dataset that the parameter of zinb object is fit to.
 Since we filter out some simulated cells due to low amount of genes detected
 in that cell,
@@ -45,5 +45,21 @@ celltype after QC measures.
 \description{
 simulation to generate scRNA-seq data with varying level of
 gene detection noise versus gene count noise
+}
+\examples{
+
+## load data
+
+data("zinb",package = "scBFA", envir = environment())
+data("celltype",package = "scBFA", envir = environment())
+
+scData = scNoiseSim(zinb = zinb,
+         celltype = celltype,
+         disper = 1,
+         var_dropout =1,
+         var_count = 1,
+         delta = 1)
+ls.str(scData)
+
 }
 \keyword{export}
