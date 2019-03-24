@@ -53,50 +53,27 @@ library(Seurat)
 library(ggplot2)
 library(Rtsne)
 library(scBFA)
+library(copula)
 ```
 
 
 ## Information of example dataset
-The example dataset is generated from our scRNA-seq simulator. 
-As outlined in our paper, the true parameters are learned from a ZINB-WaVE
-model learned from fitting a real dataset 
+The example dataset is generated from our scRNA-seq pre-DC/cDC dataset sourced 
+from
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232
-After performing quality control procedure of genes and cells
-(as outlined in the paper), we filtered out genes that are undetected in more 
-than 99% of cells and remove cells that has in more than 99% genes undetected.
-we end up with 950 cells and 2000 genes
+After performing all quality control procedure of genes and cells
+(as outlined in the paper), we then select 500 most variable genes for 
+illustration purpose. The example dataset consists of 950 cells and 500 genes
 ```{r}
 
 # raw counts matrix with rows are genes and columns are cells
-data("zinb",package = "scBFA", envir = environment())
+data("exprdata",package = "scBFA", envir = environment())
 
 # a vector specify the ground truth of cell types provided by conquer database
 data("celltype",package = "scBFA",envir = environment())
 
 
 ```
-## Simulate a raw count matrix and corresponding cell labels
-
-```{r,include=TRUE,message=FALSE}
-set.seed(1)
-
-scData = scNoiseSim(zinb = zinb,celltype = celltype,disper =5,var_dropout =0.1,
-            var_count = 1,
-            delta = -1)
-
-exprdata = scData$exprdata;
-
-celltype = scData$celltype;
-
-print(paste("dimensions of the expression profile:",
-            nrow(exprdata),"genes and",ncol(exprdata),"cells"))
-
-
-```
-
-
-
-
 
 
 ## Working with SingleCellExperiment class
@@ -131,10 +108,10 @@ $\gamma$ is corresponding coefficient matrix and is named as "gamma" in
 the model object
 
 
-We choose 10 as number of latent dimensions and project the gene detection 
+We choose 3 as number of latent dimensions and project the gene detection 
 matrix on the embedding space.
 ```{r,include=TRUE,results="hide",message=FALSE}
-bfa_model = scbfa(scData = sce, numFactors = 10) 
+bfa_model = scbfa(scData = sce, numFactors = 3) 
 ```
 
 We then visualize the low dimensional embedding of BFA in tSNE space.
@@ -143,7 +120,7 @@ Points are colored by their corresponding cell types.
 ```{r,fig.width=8, fig.height=6}
 set.seed(5)
 tsne_bfa = Rtsne(scale(bfa_model$ZZ),
-                initial_dims =10,perplexity =30,Steps = 5000)
+                initial_dims =3,perplexity =30,Steps = 5000)
 df = as.data.frame(tsne_bfa$Y)
 df$celltype = celltype
 
@@ -173,8 +150,8 @@ We then visualize the low dimensional embedding of Binary PCA in tSNE space.
 Points are colored by their corresponding cell types.
 ```{r,fig.width=8, fig.height=6}
 set.seed(5)
-tsne_bpca = Rtsne(scale(bpca$x[,c(1:10)]),
-                initial_dims =10, perplexity = 30,Steps = 5000)
+tsne_bpca = Rtsne(scale(bpca$x[,c(1:3)]),
+                initial_dims =3, perplexity = 30,Steps = 5000)
 
 df = as.data.frame(tsne_bpca$Y)
 df$celltype = celltype
