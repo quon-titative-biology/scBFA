@@ -35,10 +35,14 @@
 #' @export
 #' @examples
 #'
-#' ## load data
+#'library(zinbwave)
 #'
-#' data("zinb",package = "scBFA", envir = environment())
-#' data("celltype",package = "scBFA", envir = environment())
+#'GeneExpr = matrix(rpois(15,1),nrow = 5,ncol = 3)
+#'rownames(GeneExpr) = paste0("gene",seq_len(nrow(GeneExpr)))
+#'colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
+#'celltype = as.factor(sample(c(1,2,3),3,replace = TRUE))
+#'
+#' zinb = zinbFit(Y = GeneExpr,K=2)
 #'
 #' scData = scNoiseSim(zinb = zinb,
 #'          celltype = celltype,
