@@ -35,22 +35,18 @@
 #' @export
 #' @examples
 #'
-#'library(zinbwave)
+#' ## raw counts matrix with rows are genes and columns are cells
+#' data("zinb_toy",package = "scBFA", envir = environment())
+
+#' ## a vector specify the ground truth of cell types provided by conquer database
+#' data("celltype_toy",package = "scBFA",envir = environment())
 #'
-#'GeneExpr = matrix(rpois(15,1),nrow = 5,ncol = 3)
-#'rownames(GeneExpr) = paste0("gene",seq_len(nrow(GeneExpr)))
-#'colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
-#'celltype = as.factor(sample(c(1,2,3),3,replace = TRUE))
-#'
-#' zinb = zinbFit(Y = GeneExpr,K=2)
-#'
-#' scData = scNoiseSim(zinb = zinb,
-#'          celltype = celltype,
+#' scData = scNoiseSim(zinb = zinb_toy,
+#'          celltype = celltype_toy,
 #'          disper = 1,
 #'          var_dropout =1,
 #'          var_count = 1,
 #'          delta = 1)
-#' ls.str(scData)
 #'
 
 scNoiseSim = function(zinb,
@@ -69,7 +65,8 @@ scNoiseSim = function(zinb,
     # the mean of every row of the embedding space is the corresponding row of
     # embedding in zinb-wave
     score_count=t(apply(zinb@W,1,function(x){
-    mvrnorm(1,mu = x,Sigma = diag(rep(var_count,numFactors),numFactors))}))
+        mvrnorm(1,mu = x,Sigma = diag(rep(var_count,numFactors),numFactors))}
+        ))
     # compute a N by G mean expression level for gene count
     mu = exp(zinb@X %*% zinb@beta_mu +
         t(zinb@gamma_mu) %*%  t(zinb@V) +
@@ -97,7 +94,7 @@ scNoiseSim = function(zinb,
 
     # if pi = 1, the gene has zero count
     # if pi = 0, the gene is sampled from NB distribution
-        if(pi == 0){
+            if(pi == 0){
             pseudoCounts[ii,jj] = rnbinom(n = 1, size = disper , mu = mu[ii,jj])
             }
         }
