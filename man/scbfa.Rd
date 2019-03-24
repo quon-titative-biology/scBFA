@@ -69,6 +69,7 @@ Perform BFA model on the expression profile
 library(Seurat)
 library(SingleCellExperiment)
 
+
 ## Input expression profile, 100 genes x 30 cells
 
 GeneExpr = matrix(rpois(3000,1),nrow = 100,ncol = 30)
@@ -105,11 +106,6 @@ sce <- SingleCellExperiment(assay = list(counts = GeneExpr))
 ## Standardize the covariate matrix should be a default operation
 
 bfa_model = scbfa(scData = sce, X = scale(X), numFactors = 2)
-
-## examples to show visualization
-
-Z = bfa_model$ZZ
-plot(Z,col = celltype,pch = 18)
 
 }
 \keyword{export}
