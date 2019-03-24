@@ -1,3 +1,13 @@
+#' example scRNA-seq dataset(exprdata)
+#'
+#' A matrix contains 950 cells and 500 genes. The source of this dataset is cDC/
+#' pre-DC cells(see supplementary files)
+#' We subset most variant 500 genes  as  example scRNA-seq dataset(exprdata)
+#'
+#' @format A 500 x 950 matrix with gene counts value
+#' @source \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
+"exprdata"
+
 #' Cell types as labels of example scRNA-seq dataset(exprdata)
 #'
 #' A vector contains the cell types  as labels for cells in
@@ -7,14 +17,3 @@
 #' @source \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
 "celltype"
 
-
-#' A zinb object after fitting a ZINB-WaVE on cDC/pre-DC dataset
-#'
-#' A zinb model object contains all the parameters of ZINB-WaVE model after
-#' fitting dentritic dataset on
-#' https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232
-#
-#'
-#' @format A ZinbModel object contains all the parameters of ZINB-WaVE
-#' @source \url{https://github.com/drisso/zinbwave}
-"zinb"
