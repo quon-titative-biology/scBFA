@@ -366,16 +366,16 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'library(SingleCellExperiment)
 #'
 #'
-#' ## Input expression profile, 100 genes x 30 cells
+#' ## Input expression profile, 5 genes x 3 cells
 #'
-#'GeneExpr = matrix(rpois(3000,1),nrow = 100,ncol = 30)
+#'GeneExpr = matrix(rpois(15,1),nrow = 5,ncol = 3)
 #'rownames(GeneExpr) = paste0("gene",seq_len(nrow(GeneExpr)))
 #'colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
-#'celltype = as.factor(sample(c(1,2,3),30,replace = TRUE))
+#'celltype = as.factor(sample(c(1,2,3),3,replace = TRUE))
 #'
 #'## Create cell level technical batches
 #'
-#'batch = sample(rep(c("replicate 1","replicate 2"),each = 15))
+#'batch = sample(c("replicate 1","replicate 2","replicate 2"))
 #'X = matrix(NA,nrow = length(batch),ncol = 1)
 #'X[which(batch =="replicate 1"), ] = 0
 #'X[which(batch =="replicate 2"), ] = 1
@@ -462,7 +462,7 @@ scbfa <- function(scData,
 #' @param modelEnv output environment variable
 #'
 #' @examples
-#' GeneExpr = matrix(rpois(49,1),7,7)
+#' GeneExpr = matrix(rpois(15,1),3,5)
 #' bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
 #' Z = getScore(bfa_model)
 #' @keywords export
@@ -476,7 +476,7 @@ getScore <- function(modelEnv){return(modelEnv$ZZ)}
 #' @param modelEnv output environment variable
 #'
 #' @examples
-#' GeneExpr = matrix(rpois(49,1),7,7)
+#' GeneExpr = matrix(rpois(15,1),3,5)
 #' bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
 #' A = getLoading(bfa_model)
 #' @keywords export
@@ -530,16 +530,16 @@ getLoading <- function(modelEnv){return(modelEnv$AA)}
 #'library(Seurat)
 #'library(SingleCellExperiment)
 #'
-#'## Input expression profile, 100 genes x 30 cells
+#' ## Input expression profile, 5 genes x 3 cells
 #'
-#'GeneExpr = matrix(rpois(3000,1),nrow = 100,ncol = 30)
+#'GeneExpr = matrix(rpois(15,1),nrow = 5,ncol = 3)
 #'rownames(GeneExpr) = paste0("gene",seq_len(nrow(GeneExpr)))
 #'colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
-#'celltype = as.factor(sample(c(1,2,3),30,replace = TRUE))
+#'celltype = as.factor(sample(c(1,2,3),3,replace = TRUE))
 #'
 #'## Create cell level technical batches
 #'
-#'batch = sample(rep(c("replicate 1","replicate 2"),each = 15))
+#'batch = sample(c("replicate 1","replicate 2","replicate 2"))
 #'X = matrix(NA,nrow = length(batch),ncol = 1)
 #'X[which(batch =="replicate 1"), ] = 0
 #'X[which(batch =="replicate 2"), ] = 1
