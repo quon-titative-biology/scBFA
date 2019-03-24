@@ -357,12 +357,14 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #' @importFrom zinbwave orthogonalizeTraceNorm
 #' @importFrom SummarizedExperiment assay
+#' @importFrom copula log1pexp
 #' @examples
 #'
 #' ## Working with Seurat or SingleCellExperiment object
 #'
 #'library(Seurat)
 #'library(SingleCellExperiment)
+#'
 #'
 #' ## Input expression profile, 100 genes x 30 cells
 #'
@@ -400,11 +402,6 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'## Standardize the covariate matrix should be a default operation
 #'
 #'bfa_model = scbfa(scData = sce, X = scale(X), numFactors = 2)
-#'
-#'## examples to show visualization
-#'
-#'Z = bfa_model$ZZ
-#'plot(Z,col = celltype,pch = 18)
 #'
 #' @keywords export
 #' @export
