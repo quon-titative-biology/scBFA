@@ -3,7 +3,7 @@
 \docType{data}
 \name{exprdata}
 \alias{exprdata}
-\title{example scRNA-seq dataset(exprdata)}
+\title{scRNA-seq dataset(exprdata)}
 \format{A 500 x 950 matrix with gene counts value}
 \source{
 \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}

@@ -16,7 +16,7 @@ getLoading(modelEnv)
 Function to get low dimensional loading matrix
 }
 \examples{
-GeneExpr = matrix(rpois(49,1),7,7)
+GeneExpr = matrix(rpois(15,1),3,5)
 bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
 A = getLoading(bfa_model)
 }

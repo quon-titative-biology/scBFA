@@ -48,22 +48,17 @@ gene detection noise versus gene count noise
 }
 \examples{
 
-library(zinbwave)
+## raw counts matrix with rows are genes and columns are cells
+data("zinb_toy",package = "scBFA", envir = environment())
+## a vector specify the ground truth of cell types provided by conquer database
+data("celltype_toy",package = "scBFA",envir = environment())
 
-GeneExpr = matrix(rpois(15,1),nrow = 5,ncol = 3)
-rownames(GeneExpr) = paste0("gene",seq_len(nrow(GeneExpr)))
-colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
-celltype = as.factor(sample(c(1,2,3),3,replace = TRUE))
-
-zinb = zinbFit(Y = GeneExpr,K=2)
-
-scData = scNoiseSim(zinb = zinb,
-         celltype = celltype,
+scData = scNoiseSim(zinb = zinb_toy,
+         celltype = celltype_toy,
          disper = 1,
          var_dropout =1,
          var_count = 1,
          delta = 1)
-ls.str(scData)
 
 }
 \keyword{export}
