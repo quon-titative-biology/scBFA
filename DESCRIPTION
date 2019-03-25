@@ -19,10 +19,9 @@ Depends: R (>= 3.6)
 Imports: SingleCellExperiment,
         SummarizedExperiment,
         Seurat,
-	    MASS,
-	    zinbwave,
-        stats,
-        copula
+	MASS,
+	zinbwave,
+        stats
 Suggests:
     knitr,
     rmarkdown,
