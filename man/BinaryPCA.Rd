@@ -17,7 +17,7 @@ can be a seurat object; can be a SingleCellExperiment object.}
 in which rows are cells,columns are number of covariates.
 If no such covariates available X = NULL}
 
-\item{scale.}{Logical value isndicating whether the variables should be
+\item{scale.}{Logical value indicating whether the variables should be
 scaled to have unit variance before the analysis takes place.
 In general scaling is not advisable, since we think the variance in the
 gene detection space is potentially associated with celltypes
