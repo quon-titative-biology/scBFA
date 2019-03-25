@@ -47,13 +47,9 @@ next we can load dependent packages
 
 ```{r,include=TRUE,results="hide",message=FALSE,warning=FALSE}
 library(zinbwave)
-library(MASS)
 library(SingleCellExperiment)
-library(Seurat)
 library(ggplot2)
-library(Rtsne)
 library(scBFA)
-library(copula)
 ```
 
 

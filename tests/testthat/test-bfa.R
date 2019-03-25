@@ -2,9 +2,6 @@ context("scBFA")
 
 test_that("bfa halts on numeric matrix input", {
 
-    library(Seurat)
-    library(SingleCellExperiment)
-
     ## Input expression profile, 5 genes x 3 cells
 
     GeneExpr = matrix(rpois(15,1),nrow = 5,ncol = 3)
