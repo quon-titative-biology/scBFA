@@ -357,7 +357,6 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #' @importFrom zinbwave orthogonalizeTraceNorm
 #' @importFrom SummarizedExperiment assay
-#' @importFrom copula log1pexp
 #' @examples
 #'
 #' ## Working with Seurat or SingleCellExperiment object
@@ -510,7 +509,7 @@ getLoading <- function(modelEnv){return(modelEnv$AA)}
 #' @param X \eqn{N} by \eqn{C} covariate matrix,e.g batch effect,
 #' in which rows are cells,columns are number of covariates.
 #' If no such covariates available X = NULL
-#' @param scale. Logical value isndicating whether the variables should be
+#' @param scale. Logical value indicating whether the variables should be
 #' scaled to have unit variance before the analysis takes place.
 #' In general scaling is not advisable, since we think the variance in the
 #' gene detection space is potentially associated with celltypes
