@@ -47,9 +47,13 @@ next we can load dependent packages
 
 ```{r,include=TRUE,results="hide",message=FALSE,warning=FALSE}
 library(zinbwave)
+library(MASS)
 library(SingleCellExperiment)
+library(Seurat)
 library(ggplot2)
+library(Rtsne)
 library(scBFA)
+library(copula)
 ```
 
 
@@ -107,7 +111,7 @@ the model object
 We choose 3 as number of latent dimensions and project the gene detection 
 matrix on the embedding space.
 ```{r,include=TRUE,results="hide",message=FALSE}
-bfa_model = scbfa(scData = sce, numFactors = 2) 
+bfa_model = scbfa(scData = sce, numFactors = 3) 
 ```
 
 We then visualize the low dimensional embedding of BFA in tSNE space.
@@ -115,7 +119,9 @@ Points are colored by their corresponding cell types.
 
 ```{r,fig.width=8, fig.height=6}
 set.seed(5)
-df = as.data.frame(bfa_model$ZZ)
+tsne_bfa = Rtsne(scale(bfa_model$ZZ),
+                initial_dims =3,perplexity =30,Steps = 5000)
+df = as.data.frame(tsne_bfa$Y)
 df$celltype = celltype
 
 p1 <- ggplot(df,aes(x = V1,y = V2,colour = celltype))
@@ -143,9 +149,11 @@ bpca = BinaryPCA(scData = sce)
 We then visualize the low dimensional embedding of Binary PCA in tSNE space.
 Points are colored by their corresponding cell types.
 ```{r,fig.width=8, fig.height=6}
+set.seed(5)
+tsne_bpca = Rtsne(scale(bpca$x[,c(1:3)]),
+                initial_dims =3, perplexity = 30,Steps = 5000)
 
-df = as.data.frame(bpca$x[,c(1:2)])
-colnames(df) = c("V1","V2")
+df = as.data.frame(tsne_bpca$Y)
 df$celltype = celltype
 
 p1 <- ggplot(df,aes(x = V1,y = V2,colour = celltype))

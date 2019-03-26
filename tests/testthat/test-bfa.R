@@ -2,20 +2,19 @@ context("scBFA")
 
 test_that("bfa halts on numeric matrix input", {
 
-    ## Input expression profile, 5 genes x 3 cells
+    library(Seurat)
+    library(SingleCellExperiment)
 
-    GeneExpr = matrix(rpois(15,1),nrow = 5,ncol = 3)
+    ## Input expression profile, 100 genes x 30 cells
+
+    GeneExpr = matrix(rpois(3000,1),nrow = 100,ncol = 30)
     rownames(GeneExpr) = paste0("gene",seq_len(nrow(GeneExpr)))
     colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
-    celltype = as.factor(sample(c(1,2,3),3,replace = TRUE))
-    #'
-    #'## Create cell level technical batches
-    #'
-    #'batch = sample(c("replicate 1","replicate 2","replicate 2"))
+    celltype = as.factor(sample(c(1,2,3),30,replace = TRUE))
 
     ## Create cell level technical batches
 
-    batch = sample(c("replicate 1","replicate 2","replicate 2"))
+    batch = sample(rep(c("replicate 1","replicate 2"),each = 15))
     X = matrix(NA,nrow = length(batch),ncol = 1)
     X[which(batch =="replicate 1"), ] = 0
     X[which(batch =="replicate 2"), ] = 1
