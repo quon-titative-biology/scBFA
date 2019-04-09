@@ -357,7 +357,6 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #' @importFrom zinbwave orthogonalizeTraceNorm
 #' @importFrom SummarizedExperiment assay
-#' @importFrom copula log1pexp
 #' @examples
 #'
 #' ## Working with Seurat or SingleCellExperiment object
