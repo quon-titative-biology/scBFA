@@ -15,14 +15,13 @@ Authors@R:
 URL: https://github.com/ucdavis/quon-titative-biology/BFA
 BugReports: https://github.com/ucdavis/quon-titative-biology/BFA/issues
 biocViews: SingleCell, Transcriptomics, DimensionReduction,GeneExpression, ATACSeq, BatchEffect, KEGG, QualityControl
-Depends: R (>= 3.6)
+Depends: R (>= 3.5)
 Imports: SingleCellExperiment,
         SummarizedExperiment,
         Seurat,
 	    MASS,
 	    zinbwave,
-        stats,
-        copula
+        stats
 Suggests:
     knitr,
     rmarkdown,
@@ -30,7 +29,7 @@ Suggests:
     Rtsne,
     ggplot2
 VignetteBuilder: knitr
-SystemRequirements: R(>=3.6)
+SystemRequirements: R(>=3.5)
 RoxygenNote: 6.1.1
 License: GPL-3
 LazyData: true
