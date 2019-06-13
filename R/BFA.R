@@ -34,14 +34,14 @@
 #' @keywords internal
 
 InitBinaryFA <- function(modelEnv,
-                        GeneExpr,
-                        numFactors,
-                        epsilon,
-                        X=NULL,
-                        Q = NULL,
-                        initCellcoef,
-                        updateCellcoef,
-                        updateGenecoef){
+                         GeneExpr,
+                         numFactors,
+                         epsilon,
+                         X=NULL,
+                         Q = NULL,
+                         initCellcoef,
+                         updateCellcoef,
+                         updateGenecoef){
 
     modelEnv$numCells <- ncol(GeneExpr);
 
@@ -86,13 +86,13 @@ InitBinaryFA <- function(modelEnv,
 
     # Initialization of N by K low dimensional embedding matrix
     modelEnv$ZZ <- matrix(rnorm(modelEnv$numCells * modelEnv$numFactors),
-                        nrow = modelEnv$numCells, ncol = modelEnv$numFactors)
+                          nrow = modelEnv$numCells, ncol = modelEnv$numFactors)
     # Initialization of G by K compressed feature space matrix
     modelEnv$AA <- matrix(rnorm(modelEnv$numGenes * modelEnv$numFactors),
-                        nrow = modelEnv$numGenes, ncol = modelEnv$numFactors)
+                          nrow = modelEnv$numGenes, ncol = modelEnv$numFactors)
     # Initialization of N by T gene specific coefficient matrix
     modelEnv$gamma <- matrix(rnorm(modelEnv$numCells* modelEnv$numCoef_Q),
-                        nrow = modelEnv$numCells,ncol = modelEnv$numCoef_Q)
+                             nrow = modelEnv$numCells,ncol = modelEnv$numCoef_Q)
     # Initialization of N by 1 cellwise intercept
     modelEnv$UU <- matrix(1,nrow = modelEnv$numCells, ncol = 1)
     # Initialization of G by 1 genewise offset
@@ -102,7 +102,7 @@ InitBinaryFA <- function(modelEnv,
         # if the user doesn't provide initialization of coefficient beta
         # then randomly initialize coefficient beta
         modelEnv$beta <- matrix(rnorm(modelEnv$numCoef_X *modelEnv$numGenes ),
-                            nrow = modelEnv$numCoef_X,ncol = modelEnv$numGenes)
+                                nrow = modelEnv$numCoef_X,ncol = modelEnv$numGenes)
     }else if(!is.null(initCellcoef)){
         # if the user provides initialization of coefficient beta,
         # then initialize coefficient beta with user-provided initialization
@@ -115,14 +115,14 @@ InitBinaryFA <- function(modelEnv,
     # then we don't update coefficient matrix to avoid extra computation
     if(is.null(X)){
         print("No cell covariate presents,
-                not updating cell coefficient matrix")
+              not updating cell coefficient matrix")
         modelEnv$updateCellcoef = FALSE
     }
     # if there is no gene covariate matrix
     # then we don't update coefficient matrix to avoid extra computation
     if(is.null(Q)){
         print("No gene covariate presents,
-                not updating gene coefficient matrix")
+              not updating gene coefficient matrix")
         modelEnv$updateGenecoef = FALSE
     }
     # Matrix B: Denoting whether a gene is detected
@@ -134,8 +134,8 @@ InitBinaryFA <- function(modelEnv,
     # Construc a long vector since the input of optim()
     # needs parameters in the form of vector instead of list.
     modelEnv$parameters <- c(AA = modelEnv$AA, ZZ = modelEnv$ZZ,
-                            beta = modelEnv$beta, gamma = modelEnv$gamma,
-                        UU = modelEnv$UU, VV = modelEnv$VV,epsilon = epsilon)
+                             beta = modelEnv$beta, gamma = modelEnv$gamma,
+                             UU = modelEnv$UU, VV = modelEnv$VV,epsilon = epsilon)
 
     modelEnv$epsilon = epsilon
 
@@ -158,13 +158,13 @@ restore <- function(parameters,modelEnv){
     para_names <- names(parameters)
     param = list()
     param$ZZ <- matrix(parameters[grepl("ZZ",para_names)],
-                        nrow = modelEnv$numCells, ncol = modelEnv$numFactors)
+                       nrow = modelEnv$numCells, ncol = modelEnv$numFactors)
     param$AA <- matrix(parameters[grepl("AA",para_names)],
-                        nrow = modelEnv$numGenes,ncol = modelEnv$numFactors)
+                       nrow = modelEnv$numGenes,ncol = modelEnv$numFactors)
     param$beta <- matrix(parameters[grepl("beta",para_names)],
-                        nrow = modelEnv$numCoef_X,ncol = modelEnv$numGenes)
+                         nrow = modelEnv$numCoef_X,ncol = modelEnv$numGenes)
     param$gamma <- matrix(parameters[grepl("gamma",para_names)],
-                        nrow = modelEnv$numCells,ncol = modelEnv$numCoef_Q)
+                          nrow = modelEnv$numCells,ncol = modelEnv$numCoef_Q)
     param$UU <- parameters[grepl("UU",para_names)]
     param$VV <- parameters[grepl("VV",para_names)]
     param$epsilon <- parameters[grepl("epsilon",para_names)]
@@ -288,11 +288,11 @@ gradient <- function(parameters,modelEnv){
 OptimBFA <- function(modelEnv,maxit,method){
 
     opt <- optim(par = modelEnv$parameters,
-                fn = neg_loglikelihood,
-                gr = gradient,
-                modelEnv = modelEnv,
-                method = method,
-                control = list(maxit =maxit))
+                 fn = neg_loglikelihood,
+                 gr = gradient,
+                 modelEnv = modelEnv,
+                 method = method,
+                 control = list(maxit =maxit))
 
     param <- restore(opt$par,modelEnv)
 
@@ -305,12 +305,12 @@ OptimBFA <- function(modelEnv,maxit,method){
 
 
     modelEnv$parameters <- c( AA = modelEnv$AA,
-                            ZZ = modelEnv$ZZ,
-                            beta = modelEnv$beta,
-                            gamma = modelEnv$gamma,
-                            UU = modelEnv$UU,
-                            VV = modelEnv$VV,
-                            epsilon = modelEnv$epsilon)
+                              ZZ = modelEnv$ZZ,
+                              beta = modelEnv$beta,
+                              gamma = modelEnv$gamma,
+                              UU = modelEnv$UU,
+                              VV = modelEnv$VV,
+                              epsilon = modelEnv$epsilon)
 
     return(modelEnv)
 
@@ -357,6 +357,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #' @importFrom zinbwave orthogonalizeTraceNorm
 #' @importFrom SummarizedExperiment assay
+#' @importFrom copula log1pexp
 #' @examples
 #'
 #' ## Working with Seurat or SingleCellExperiment object
@@ -386,7 +387,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #'## Create Seurat object for input to BFA
 #'
-#'scData = CreateSeuratObject(raw.data = GeneExpr,project="sc",min.cells = 0)
+#'scData = CreateSeuratObject(counts = GeneExpr,project="sc",min.cells = 0)
 #'
 #'## Standardize the covariate matrix should be a default operation
 #'
@@ -405,14 +406,14 @@ OptimBFA <- function(modelEnv,maxit,method){
 #' @keywords export
 #' @export
 scbfa <- function(scData,
-                numFactors,
-                X=NULL,
-                Q = NULL,
-                maxit = 300,
-                method = "L-BFGS-B",
-                initCellcoef = NULL,
-                updateCellcoef = TRUE,
-                updateGenecoef = TRUE) {
+                  numFactors,
+                  X=NULL,
+                  Q = NULL,
+                  maxit = 300,
+                  method = "L-BFGS-B",
+                  initCellcoef = NULL,
+                  updateCellcoef = TRUE,
+                  updateGenecoef = TRUE) {
     # extract raw count matrix
     # extract the class scData object
     objClass = class(scData)
@@ -420,7 +421,7 @@ scbfa <- function(scData,
     if(objClass == "matrix"){
         GeneExpr = scData
     }else if(objClass == "seurat"){
-        sce = Convert(from = scData, to = "sce")
+        sce = as.SingleCellExperiment(scData)
         GeneExpr = as.matrix(assay(sce))
     }else if(objClass == "SingleCellExperiment"){
         GeneExpr = as.matrix(assay(scData))
@@ -431,21 +432,21 @@ scbfa <- function(scData,
     modelEnv = new.env();
 
     InitBinaryFA( modelEnv,
-                GeneExpr = GeneExpr,
-                X= X,
-                Q = Q,
-                numFactors = numFactors,
-                epsilon =max(dim(GeneExpr)),
-                initCellcoef = initCellcoef,
-                updateCellcoef = updateCellcoef,
-                updateGenecoef = updateGenecoef);
+                  GeneExpr = GeneExpr,
+                  X= X,
+                  Q = Q,
+                  numFactors = numFactors,
+                  epsilon =max(dim(GeneExpr)),
+                  initCellcoef = initCellcoef,
+                  updateCellcoef = updateCellcoef,
+                  updateGenecoef = updateGenecoef);
     # optimization
     modelEnv = OptimBFA(modelEnv,maxit = maxit,method = method)
     # Orthogonalization
     orthogonalizefactors<-orthogonalizeTraceNorm(U = modelEnv$ZZ,
-                                        V = t(modelEnv$AA),
-                                        a=0.5*(modelEnv$regularize_per_cell),
-                                        b=0.5*(modelEnv$regularize_per_gene))
+                                                 V = t(modelEnv$AA),
+                                                 a=0.5*(modelEnv$regularize_per_cell),
+                                                 b=0.5*(modelEnv$regularize_per_gene))
 
     modelEnv$AA <- t(orthogonalizefactors$V) ;
     modelEnv$ZZ <- orthogonalizefactors$U
@@ -550,7 +551,7 @@ getLoading <- function(modelEnv){return(modelEnv$AA)}
 #'
 #'## Create Seurat object for input to BFA
 #'
-#'scData = CreateSeuratObject(raw.data = GeneExpr,project = "sc",min.cells = 0)
+#'scData = CreateSeuratObject(counts = GeneExpr,project = "sc",min.cells = 0)
 #'
 #'## Standardize the covariate matrix should be a default operation
 #'
@@ -577,7 +578,7 @@ BinaryPCA = function(scData,X=NULL,scale. = FALSE,center = TRUE){
     if(objClass == "matrix"){
         GeneExpr = scData
     }else if(objClass == "seurat"){
-        sce = Convert(from = scData, to = "sce")
+        sce = as.SingleCellExperiment(scData)
         GeneExpr = as.matrix(assay(sce))
     }else if(objClass == "SingleCellExperiment"){
         GeneExpr = as.matrix(assay(scData))
