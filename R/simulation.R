@@ -50,11 +50,11 @@
 #'
 
 scNoiseSim = function(zinb,
-                    celltype,
-                    disper,
-                    var_dropout = 1,
-                    var_count = 1,
-                    delta){
+                      celltype,
+                      disper,
+                      var_dropout = 1,
+                      var_count = 1,
+                      delta){
     # number of cells
     numCells = nrow(zinb@W);
     # number of genes
@@ -66,16 +66,16 @@ scNoiseSim = function(zinb,
     # embedding in zinb-wave
     score_count=t(apply(zinb@W,1,function(x){
         mvrnorm(1,mu = x,Sigma = diag(rep(var_count,numFactors),numFactors))}
-        ))
+    ))
     # compute a N by G mean expression level for gene count
     mu = exp(zinb@X %*% zinb@beta_mu +
-        t(zinb@gamma_mu) %*%  t(zinb@V) +
-        score_count %*% (zinb@alpha_mu) + zinb@O_mu)
+                 t(zinb@gamma_mu) %*%  t(zinb@V) +
+                 score_count %*% (zinb@alpha_mu) + zinb@O_mu)
     # simulate a N by K low dimensional embedding for gene detection space,
     # the mean of every row of the embedding space is the corresponding
     # row of embedding in zinb-wave
     score_dropout = t(apply(zinb@W,1,function(x){
-    mvrnorm(1,mu = x,Sigma = diag(rep(var_dropout,numFactors),numFactors))}))
+        mvrnorm(1,mu = x,Sigma = diag(rep(var_dropout,numFactors),numFactors))}))
     # linear term to parameterize the  probability matrix to determine whether
     # a gene is zero or sampled from a NB distirbution
     linear = zinb@X %*% zinb@beta_pi +t(zinb@gamma_pi) %*%  t(zinb@V) +
@@ -89,13 +89,13 @@ scNoiseSim = function(zinb,
 
     for(ii in seq_len(numCells)){
         for(jj in seq_len(numGenes)){
-    # whether to sample a zero or a negative binomial distribution
+            # whether to sample a zero or a negative binomial distribution
             pi = rbinom(1, size = 1, prob =Pi_sample_zero[ii,jj])
 
-    # if pi = 1, the gene has zero count
-    # if pi = 0, the gene is sampled from NB distribution
+            # if pi = 1, the gene has zero count
+            # if pi = 0, the gene is sampled from NB distribution
             if(pi == 0){
-            pseudoCounts[ii,jj] = rnbinom(n = 1, size = disper , mu = mu[ii,jj])
+                pseudoCounts[ii,jj] = rnbinom(n = 1, size = disper , mu = mu[ii,jj])
             }
         }
     }
