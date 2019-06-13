@@ -77,7 +77,7 @@ bpca_model = BinaryPCA(scData = GeneExpr,X = scale(X))
 
 ## Create Seurat object for input to BFA
 
-scData = CreateSeuratObject(raw.data = GeneExpr,project = "sc",min.cells = 0)
+scData = CreateSeuratObject(counts = GeneExpr,project = "sc",min.cells = 0)
 
 ## Standardize the covariate matrix should be a default operation
 
