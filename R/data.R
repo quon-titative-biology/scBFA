@@ -2,9 +2,9 @@
 #'
 #' A matrix contains 950 cells and 500 genes. The source of this dataset is cDC/
 #' pre-DC cells(see supplementary files)
-#' We subset most variant 500 genes  as  example scRNA-seq dataset(exprdata)
+#' We subset most variant 100 genes  as  example scRNA-seq dataset(exprdata)
 #'
-#' @format A 500 x 950 matrix with gene counts value
+#' @format A 100 x 950 matrix with gene counts value
 #' @source \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
 "exprdata"
 
@@ -40,3 +40,17 @@
 #'
 #' @format A vector of length 5 contains 3 cell types
 "celltype_toy"
+
+
+#' Reference dataset(disperPlot)
+#'
+#' A dataframe contains all the gene-wise dispersion estimates loess curve for 14 datasets we benchmarked in Figure 2.a
+#'
+#' The variable in the columns are:
+#' fitted_dispersion: the log value of gene-wise dispersion after fitting a loess curve with respect to TPM value.
+#' Note that the genes at the top 2.5% and buttom 2.5% of the TPM value has been removed
+#' meantpm is average tpm value calculated per gene
+#' dataset are nams for datasets
+#' variance is  gene selection method, here is HEG vs HVG
+#' @format A 53198 x 4 data frame
+"disperPlot"
