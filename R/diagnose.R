@@ -16,6 +16,7 @@
 #' @param diagnose_feature a parameter to determin whether the user want to check GDR or dispersion.
 #' @import ggplot2
 #' @import DESeq2
+#' @import grid
 #' @importFrom SummarizedExperiment mcols
 #' @importFrom stats loess predict quantile
 #' @importFrom utils data
@@ -130,20 +131,29 @@ diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_fea
                          panel.background = element_blank(),
                          legend.key = element_blank(),
                          axis.text=element_text(size=20),
-                         #axis.text = element_blank(),
+                         plot.title = element_blank(),
                          axis.title = element_text(size=20),
                          axis.line.x = element_line(color="black"),
                          axis.line.y = element_line(color="black"),
                          legend.title = element_text(size=20),
                          legend.text = element_text(size=16))
 
+        top_y = max(plotdf$fitted_disper)
+
+        top_x = max(disperPlot$meantpm)
+
+        p1 <- p1 + annotation_custom(textGrob('input\n', gp = gpar(col = 'black')),
+                                     xmin = top_x-2, xmax =top_x, ymin =top_y-0.7 , ymax = top_y)+
+            annotation_custom(textGrob("don't use scBFA (Group II)\n", gp = gpar(col = 'red2')),
+                              xmin = top_x-2, xmax = top_x, ymin =top_y - 1.4, ymax = top_y - 0.7) +
+            annotation_custom(textGrob('blue: use scBFA (Group I)\n', gp = gpar(col = 'deepskyblue')),
+                              xmin = top_x-2, xmax = top_x, ymin = top_y - 2.1, ymax = top_y - 1.4)
 
 
-
-        p1 + ggtitle("black: input    red: don't use scBFA (Group II)    blue: use scBFA (Group I)")
 
         p1
 
+        return(p1)
     }else if(diagnose_feature=="GDR"){
 
         GDR = sum(GeneExpr!=0)/length(c(GeneExpr))
