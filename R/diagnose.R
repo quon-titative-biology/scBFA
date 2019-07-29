@@ -13,11 +13,11 @@
 #' DESeq2 offers stepwise dispersion estimate, a gene wise dispersion estimate using
 #' "GeneEst", dispersion estimate from fitted disperions ~ mean curve (using "Fitted")
 #' And final MAP estimate,using "Map". Default value is "Fitted"
-#' @param diagnose_feature a parameter to determin whether the user want to check GDR or dispersion.
+#' @param diagnose_feature a parameter to determine whether the user want to check GDR or dispersion.
 #' @import ggplot2
 #' @import DESeq2
 #' @import grid
-#' @importFrom SummarizedExperiment mcols
+#' @importFrom SummarizedExperiment mcols colData
 #' @importFrom stats loess predict quantile
 #' @importFrom utils data
 #' @keywords export
@@ -30,16 +30,8 @@
 
 diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_feature="dispersion"){
         # colData should be data.frame that consists of feature matrix
-        objClass = class(scData)
         # read data based on which class the input scData is
-        if(objClass == "matrix"){
-            GeneExpr = scData
-        }else if(objClass == "seurat"){
-            sce = as.SingleCellExperiment(scData)
-            GeneExpr = as.matrix(assay(sce))
-        }else if(objClass == "SingleCellExperiment"){
-            GeneExpr = as.matrix(assay(scData))
-        }
+        GeneExpr = getGeneExpr(scData)
         # if sampleInfo matrix is NULL, make them to be column 1
         if(is.null(sampleInfo)){
 
@@ -50,10 +42,10 @@ diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_fea
         rownames(sampleInfo) = colnames(GeneExpr)
 
         if(!identical(rownames(sampleInfo), colnames(GeneExpr))){
-                print("Notes: Feature data and expression matrix have different sample names")
+                message("Notes: Feature data and expression matrix have different sample names")
         }
 
-    if(diagnose_feature == "dispersion"){
+    if(identical(diagnose_feature,"dispersion")){
 
         data(disperPlot)
         # Note DESeq2 package replace design to be ~ 1 when estimating dispersion.
@@ -70,11 +62,11 @@ diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_fea
         # estimate dispersions
         dds = estimateDispersions(dds)
         # which dispersion estimate to use
-        if(disperType == "Map"){
+        if(identical(disperType,"Map")){
             disper = dispersions(dds)
-        }else if(disperType == "Fitted"){
+        }else if(identical(disperType,"Fitted")){
             disper = mcols(dds)$dispFit
-        }else if(disperType == "GeneEst"){
+        }else if(identical(disperType,"GeneEst")){
             disper = mcols(dds)$dispGeneEst
         }
 
@@ -86,7 +78,7 @@ diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_fea
         # local linear regression to fit the curve
         loessMod <- loess(log(disper) ~ (meantpm), data=df, span=0.3)
         # fitted dispersion value after fitting mean of log(tpm)
-        df$fitted_disper = predict(loessMod)
+        df[,"fitted_disper"] = predict(loessMod)
 
         quant = quantile(df$meantpm, probs = seq(0, 1, 0.025))
         # address border effect of LOESS
@@ -96,13 +88,13 @@ diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_fea
 
         df = df[,!names(df) %in% c("disper","plotOutlier")]
 
-        df$dataset = "new"
+        df[,"dataset"] = "new"
 
-        df$variance = "new data"
+        df[,"variance"] = "new data"
 
         plotdf = rbind(disperPlot,df)
 
-        plotdf$dataset_selection = paste(plotdf$dataset,plotdf$variance)
+        plotdf[,"dataset_selection"] = paste(plotdf$dataset,plotdf$variance)
 
         alldatasets = c("mESCs","DC","Intestinal",
           "Pancreatic","HSCs","HSPC","H7-ESC",
@@ -154,7 +146,7 @@ diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_fea
         p1
 
         return(p1)
-    }else if(diagnose_feature=="GDR"){
+    }else if(identical(diagnose_feature,"GDR")){
 
         GDR = sum(GeneExpr!=0)/length(c(GeneExpr))
 
