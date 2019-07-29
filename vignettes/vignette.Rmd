@@ -37,7 +37,7 @@ procedure performed by BFA or Binary PCA.
 
 Let's start with the installation 
 
-```R
+```{r,eval=FALSE,include=TRUE,results="hide",message=FALSE,warning=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("scBFA")
@@ -63,10 +63,10 @@ illustration purpose. The example dataset consists of 950 cells and 500 genes
 ```{r}
 
 # raw counts matrix with rows are genes and columns are cells
-data("exprdata",package = "scBFA", envir = environment())
+data("exprdata")
 
 # a vector specify the ground truth of cell types provided by conquer database
-data("celltype",package = "scBFA",envir = environment())
+data("celltype")
 
 
 ```
