@@ -29,7 +29,9 @@
 #'
 #' @import zinbwave
 #' @import MASS
+#' @import SingleCellExperiment
 #' @importFrom stats rbinom rnbinom rnorm
+#' 
 #' @keywords export
 #'
 #' @export
@@ -56,7 +58,7 @@ scNoiseSim = function(zinb,
                       var_count = 1,
                       delta){
     # number of cells
-    numCells = nrow(zinb@W);
+    numCells = nrow(zinb@W)
     # number of genes
     numGenes = ncol(zinb@alpha_mu)
     # number of numFactors
@@ -100,26 +102,29 @@ scNoiseSim = function(zinb,
         }
     }
     # check if there is NA generated due to numeric reason.
-    print(paste("the amount of NA: ",sum(is.na(pseudoCounts))))
+    message(paste("the amount of NA: ",sum(is.na(pseudoCounts))))
 
-    print(paste0("total detection rate:",sum(pseudoCounts != 0)/length(mu)))
+    message(paste0("total detection rate:",sum(pseudoCounts != 0)/length(mu)))
     # calculate gene detection rate
     gdr = colSums(pseudoCounts != 0)/numCells
     # calculate cell detection rate
     cdr = rowSums(pseudoCounts!=0)/numGenes
 
-    print("summary of gene detection rate")
-    print(summary(gdr))
+    message("summary of gene detection rate")
+    message(summary(gdr))
 
-    print("summary of cell detection rate")
-    print(summary(cdr))
+    message("summary of cell detection rate")
+    message(summary(cdr))
     # quality control: filter out genes with gene detection rate less than 0.01
     useGene = gdr> 0.01
     # quality control fileter out cells with cell detection rate less than 0.01
     useCell = cdr >0.01
 
     pseudoCounts =  pseudoCounts[useCell,useGene]
+    
+    sce <- SingleCellExperiment(assay = list(counts = t(pseudoCounts)),colData = data.frame(celltype =celltype[useCell] ))
+    
 
-    return(list(exprdata = t(pseudoCounts),celltype = celltype[useCell]))
+    return(sce)
 
 }
