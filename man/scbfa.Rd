@@ -63,7 +63,6 @@ as well as global variables needed for calculation:
 Perform BFA model on the expression profile
 }
 \examples{
-
 ## Working with Seurat or SingleCellExperiment object
 
 library(Seurat)

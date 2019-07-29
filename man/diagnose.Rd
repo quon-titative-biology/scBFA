@@ -21,7 +21,7 @@ DESeq2 offers stepwise dispersion estimate, a gene wise dispersion estimate usin
 "GeneEst", dispersion estimate from fitted disperions ~ mean curve (using "Fitted")
 And final MAP estimate,using "Map". Default value is "Fitted"}
 
-\item{diagnose_feature}{a parameter to determin whether the user want to check GDR or dispersion.}
+\item{diagnose_feature}{a parameter to determine whether the user want to check GDR or dispersion.}
 }
 \value{
 A Figure to tell the where the input data's dispersion ~ tpm curve

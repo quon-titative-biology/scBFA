@@ -20,4 +20,4 @@ Vectorized gradient
 Calculate gradient of the negative log likelihood,
 used for calls to the optim() function.
 }
-\keyword{internal}
+\keyword{export}
