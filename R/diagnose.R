@@ -30,7 +30,7 @@
 
 diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_feature="dispersion"){
         # colData should be data.frame that consists of feature matrix
-        # read data based on which class the input scData is
+        # read scData
         GeneExpr = getGeneExpr(scData)
         # if sampleInfo matrix is NULL, make them to be column 1
         if(is.null(sampleInfo)){
