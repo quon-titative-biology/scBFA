@@ -3,7 +3,7 @@
 \name{InitBinaryFA}
 \alias{InitBinaryFA}
 \title{This function should be called to initialize input parameters into the
-main scbfa function}
+main scBFA function}
 \usage{
 InitBinaryFA(modelEnv, GeneExpr, numFactors, epsilon, X = NULL,
   Q = NULL, initCellcoef, updateCellcoef, updateGenecoef)
@@ -50,6 +50,6 @@ A model environment containing the following parameters:
 }
 \description{
 This function should be called to initialize input parameters into the
-main scbfa function
+main scBFA function
 }
 \keyword{internal}

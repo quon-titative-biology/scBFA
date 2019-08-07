@@ -107,7 +107,7 @@ the model object
 We choose 3 as number of latent dimensions and project the gene detection 
 matrix on the embedding space.
 ```{r,include=TRUE,results="hide",message=FALSE}
-bfa_model = scbfa(scData = sce, numFactors = 2) 
+bfa_model = scBFA(scData = sce, numFactors = 2) 
 ```
 
 We then visualize the low dimensional embedding of BFA in tSNE space.

@@ -17,7 +17,7 @@ Function to get low dimensional loading matrix
 }
 \examples{
 GeneExpr = matrix(rpois(15,1),3,5)
-bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
+bfa_model = scBFA(scData = GeneExpr,X = NULL,numFactors =2)
 A = getLoading(bfa_model)
 }
 \keyword{export}
