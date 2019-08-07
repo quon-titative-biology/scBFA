@@ -1,5 +1,5 @@
 #' This function should be called to initialize input parameters into the
-#' main scbfa function
+#' main scBFA function
 #'
 #' @return A model environment containing the following parameters:
 #' {A,Z,V,U,\eqn{\beta},\eqn{\gamma},\eqn{\epsilon}}.
@@ -32,7 +32,7 @@
 #' this value should be FALSE by default.
 #'
 #' @keywords internal
-#' 
+#'
 
 InitBinaryFA <- function(modelEnv,
                          GeneExpr,
@@ -43,48 +43,48 @@ InitBinaryFA <- function(modelEnv,
                          initCellcoef,
                          updateCellcoef,
                          updateGenecoef){
-
-    modelEnv$numCells <- ncol(GeneExpr) 
-
-    modelEnv$numGenes <- nrow(GeneExpr) 
-
+    
+    modelEnv$numCells <- ncol(GeneExpr)
+    
+    modelEnv$numGenes <- nrow(GeneExpr)
+    
     modelEnv$numFactors <- numFactors
-
-
+    
+    
     # Note that X doesn't contain intercept since intercept is not regularized
     #Cell wise Intercept is parameterized as U in the later initialization
     if(!is.null(X)){
         modelEnv$X <- X
-
+        
         modelEnv$numCoef_X <- ncol(modelEnv$X)
-
+        
     }else if(is.null(X)){
-
+        
         modelEnv$X <- matrix(0,nrow = modelEnv$numCells,ncol = 1)
-
+        
         modelEnv$numCoef_X <- ncol(modelEnv$X)
-
+        
     }
-
+    
     # Note that Q doesn't contain intercept since intercept is not regularized
     #Gene wise Intercept is parameterized as V in the later initialization
     if(!is.null(Q)){
-
+        
         modelEnv$Q <- Q
-
+        
         modelEnv$numCoef_Q<- ncol(modelEnv$Q)
-
+        
     }else if(is.null(Q)){
-
+        
         modelEnv$Q <- matrix(0,nrow = modelEnv$numGenes,ncol = 1)
-
+        
         modelEnv$numCoef_Q <- ncol(modelEnv$Q)
-
+        
     }
-
-
-
-
+    
+    
+    
+    
     # Initialization of N by K low dimensional embedding matrix
     modelEnv$ZZ <- matrix(rnorm(modelEnv$numCells * modelEnv$numFactors),
                           nrow = modelEnv$numCells, ncol = modelEnv$numFactors)
@@ -109,22 +109,22 @@ InitBinaryFA <- function(modelEnv,
         # then initialize coefficient beta with user-provided initialization
         modelEnv$beta <- initCellcoef
     }
-
+    
     modelEnv$updateCellcoef = updateCellcoef
-
+    
     # if there is no cell covariate matrix,
     # then we don't update coefficient matrix to avoid extra computation
     if(is.null(X)){
-         message("No cell covariate presents,
-              not updating cell coefficient matrix")
+        message("No cell covariate presents,
+                not updating cell coefficient matrix")
         modelEnv$updateCellcoef = FALSE
     }
     # if there is no gene covariate matrix
     # then we don't update coefficient matrix to avoid extra computation
     if(is.null(Q)){
-         message("No gene covariate presents,
-              not updating gene coefficient matrix")
-         modelEnv$updateGenecoef = FALSE
+        message("No gene covariate presents,
+                not updating gene coefficient matrix")
+        modelEnv$updateGenecoef = FALSE
     }
     
     
@@ -140,11 +140,11 @@ InitBinaryFA <- function(modelEnv,
     modelEnv$parameters <- c(AA = modelEnv$AA, ZZ = modelEnv$ZZ,
                              beta = modelEnv$beta, gamma = modelEnv$gamma,
                              UU = modelEnv$UU, VV = modelEnv$VV,epsilon = epsilon)
-
+    
     modelEnv$epsilon = epsilon
-
+    
     return(modelEnv)
-
+    
 }
 
 #' Restore the vector of parameter space into their seperated parameterization
@@ -157,10 +157,10 @@ InitBinaryFA <- function(modelEnv,
 #' and global variables such as N,G,C,T,detection matrix B etc
 #'
 #' @keywords internal
-#' 
+#'
 
 restore <- function(parameters,modelEnv){
-
+    
     para_names <- names(parameters)
     param = list()
     param$ZZ <- matrix(parameters[grepl("ZZ",para_names)],
@@ -175,7 +175,7 @@ restore <- function(parameters,modelEnv){
     param$VV <- parameters[grepl("VV",para_names)]
     param$epsilon <- parameters[grepl("epsilon",para_names)]
     return(param)
-
+    
 }
 
 
@@ -193,38 +193,38 @@ restore <- function(parameters,modelEnv){
 #' and global variables such as N,G,C,detection matrix B, etc
 #'
 #' @keywords internal
-#' 
+#'
 
 neg_loglikelihood <- function(parameters,modelEnv){
-
+    
     param <- restore(parameters,modelEnv)
     # Matrix product Z * A
     WW <- tcrossprod(param$ZZ,param$AA)
     # linear predictor
     linearpredictor <-t(t(WW+(modelEnv$X %*% param$beta)+(param$UU))+param$VV) +
         param$gamma %*% t(modelEnv$Q)
-
+    
     Log1pexp <- log(1+exp(linearpredictor))
-
+    
     infix = is.infinite(Log1pexp)
     # Fix numberic issues if exp(linearpredictor) is too large
     if(sum(infix)>0){
-
+        
         Log1pexp[infix] <- linearpredictor[infix]
-
+        
     }
-
+    
     LL <- sum(modelEnv$BB * linearpredictor - Log1pexp)
     penalty_cell=0.5*(modelEnv$regularize_per_cell)*norm(param$ZZ,type = "F")^2+
         0.5*(modelEnv$regularize_per_cell)*norm(param$gamma,type = "F")^2
     penalty_gene=0.5*(modelEnv$regularize_per_gene)*norm(param$AA,type = "F")^2+
         0.5*(modelEnv$regularize_per_gene)*norm(param$beta,type = "F")^2
     penalizedLL <- LL - penalty_cell - penalty_gene
-
+    
     if(is.na(sum(penalizedLL))){stop("NA generated in likelihood calculation")}
-
+    
     return(-penalizedLL)
-
+    
 }
 
 #' Calculate gradient of the negative log likelihood,
@@ -237,10 +237,10 @@ neg_loglikelihood <- function(parameters,modelEnv){
 #' and global variables such as N,G,C,detection matrix B, etc
 #'
 #' @keywords export
-#' 
+#'
 
 gradient <- function(parameters,modelEnv){
-
+    
     param <- restore(parameters,modelEnv)
     # Matrix product Z * A
     WW = tcrossprod(param$ZZ,param$AA)
@@ -266,18 +266,18 @@ gradient <- function(parameters,modelEnv){
     }else if(!modelEnv$updateGenecoef){
         gr_gamma = 0 * param$gamma
     }
-
+    
     # Gradient of U
     gr_UU <- rowSums(common)
     # Gradient of O
     gr_VV <- colSums(common)
     # Gradient vector
     grad<- c(gr_AA, gr_ZZ, gr_beta,gr_gamma,gr_UU,gr_VV, 0)
-
+    
     if(is.na(sum(grad))){stop("NA generated in gradient calculation")}
-
+    
     return(-grad)
-
+    
 }
 
 #' Optimize parameters of BFA's likelihood function
@@ -291,25 +291,25 @@ gradient <- function(parameters,modelEnv){
 #' @param method Optimization method, default is the conjugate gradient approach
 #' L-BFGS-B is recommended for smaller dataset less than 10k cells
 #' @keywords internal
-#' 
+#'
 OptimBFA <- function(modelEnv,maxit,method){
-
+    
     opt <- optim(par = modelEnv$parameters,
                  fn = neg_loglikelihood,
                  gr = gradient,
                  modelEnv = modelEnv,
                  method = method,
                  control = list(maxit =maxit))
-
+    
     param <- restore(opt$par,modelEnv)
     
     for(vNames in c("AA","ZZ","beta","gamma")){
         modelEnv[[vNames]] = param[[vNames]]
     }
     for(Intercept in c("UU","VV")){
-        modelEnv[[Intercept]] = matrix(param[[Intercept]],ncol = 1) 
+        modelEnv[[Intercept]] = matrix(param[[Intercept]],ncol = 1)
     }
-
+    
     modelEnv$parameters <- c( AA = modelEnv$AA,
                               ZZ = modelEnv$ZZ,
                               beta = modelEnv$beta,
@@ -317,26 +317,26 @@ OptimBFA <- function(modelEnv,maxit,method){
                               UU = modelEnv$UU,
                               VV = modelEnv$VV,
                               epsilon = modelEnv$epsilon)
-
+    
     return(modelEnv)
-
+    
 }
 
-#' Function to extract gene expression matrix from input observation matrix 
+#' Function to extract gene expression matrix from input observation matrix
 #'
-#' @return a raw expression matrix in which rows are genes and columns are cells.  
+#' @return a raw expression matrix in which rows are genes and columns are cells.
 #'
 #' @param scData can be a raw count matrix,
 #' in which rows are genes and columns are cells;
 #' can be a seurat object; can be a SingleCellExperiment object
-#' 
+#'
 #' @import SingleCellExperiment
 #' @import Seurat
 #' @importFrom SummarizedExperiment assay
 #' @importFrom methods is
 #' @examples
 #' scData = matrix(rpois(15,1),3,5)
-#' 
+#'
 #' GeneExpr = getGeneExpr(scData)
 #' @keywords export
 #' @export
@@ -378,7 +378,8 @@ getGeneExpr <- function(scData){
 #' @param numFactors  Numeric value, number of latent dimensions
 #' @param maxit Numeric value, parameter to control the
 #' Maximum number of iterations in the optimization, default is 300.
-#' @param method Method of optimization,default is conjugate gradient approach.
+#' @param method Method of optimization,default is L-BFGS-B(Limited memory BFGS) approach.
+#' Conjugate Gradient (CG) is recommended for larger dataset (number of cells > 10k)
 #' @param initCellcoef Initialization of C by G gene-specific coefficient matrix
 #' as user-defined coefficient \eqn{\beta}.
 #' Such user defined coefficient can be
@@ -420,7 +421,7 @@ getGeneExpr <- function(scData){
 #'
 #'## run BFA with raw count matrix
 #'
-#'bfa_model = scbfa(scData = GeneExpr,X = scale(X),numFactors =2)
+#'bfa_model = scBFA(scData = GeneExpr,X = scale(X),numFactors =2)
 #'
 #'## Create Seurat object for input to BFA
 #'
@@ -428,7 +429,7 @@ getGeneExpr <- function(scData){
 #'
 #'## Standardize the covariate matrix should be a default operation
 #'
-#'bfa_model = scbfa(scData = scData, X = scale(X), numFactors = 2)
+#'bfa_model = scBFA(scData = scData, X = scale(X), numFactors = 2)
 #'
 #'## Build the SingleCellExperiment object for input to BFA
 #'
@@ -438,11 +439,11 @@ getGeneExpr <- function(scData){
 #'
 #'## Standardize the covariate matrix should be a default operation
 #'
-#'bfa_model = scbfa(scData = sce, X = scale(X), numFactors = 2)
+#'bfa_model = scBFA(scData = sce, X = scale(X), numFactors = 2)
 #'
 #' @keywords export
 #' @export
-scbfa <- function(scData,
+scBFA <- function(scData,
                   numFactors,
                   X=NULL,
                   Q = NULL,
@@ -451,13 +452,19 @@ scbfa <- function(scData,
                   initCellcoef = NULL,
                   updateCellcoef = TRUE,
                   updateGenecoef = TRUE) {
+    
+    match.arg(method, c("L-BFGS-B", "CG"))
+    if(!method %in% c("L-BFGS-B", "CG")){
+        stop('The input for disperType argument has to be among "L-BFGS-B", "CG"')
+    }
+    
     # extract raw count matrix
     # extract the class scData object
     GeneExpr = getGeneExpr(scData)
-
+    
     # initialization
-    modelEnv = new.env() 
-
+    modelEnv = new.env()
+    
     InitBinaryFA( modelEnv,
                   GeneExpr = GeneExpr,
                   X= X,
@@ -466,18 +473,18 @@ scbfa <- function(scData,
                   epsilon =max(dim(GeneExpr)),
                   initCellcoef = initCellcoef,
                   updateCellcoef = updateCellcoef,
-                  updateGenecoef = updateGenecoef) 
+                  updateGenecoef = updateGenecoef)
     # optimization
     modelEnv = OptimBFA(modelEnv,maxit = maxit,method = method)
     # Orthogonalization
     orthogonalizefactors = orthogonalizeTraceNorm(U = modelEnv$ZZ,
-                                                 V = t(modelEnv$AA),
-                                                 a=0.5*(modelEnv$regularize_per_cell),
-                                                 b=0.5*(modelEnv$regularize_per_gene))
-
-    modelEnv$AA = t(orthogonalizefactors$V)  
+                                                  V = t(modelEnv$AA),
+                                                  a=0.5*(modelEnv$regularize_per_cell),
+                                                  b=0.5*(modelEnv$regularize_per_gene))
+    
+    modelEnv$AA = t(orthogonalizefactors$V)
     modelEnv$ZZ = orthogonalizefactors$U
-
+    
     return(modelEnv)
 }
 
@@ -490,7 +497,7 @@ scbfa <- function(scData,
 #'
 #' @examples
 #' GeneExpr = matrix(rpois(15,1),3,5)
-#' bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
+#' bfa_model = scBFA(scData = GeneExpr,X = NULL,numFactors =2)
 #' Z = getScore(bfa_model)
 #' @keywords export
 #' @export
@@ -504,7 +511,7 @@ getScore <- function(modelEnv){return(modelEnv$ZZ)}
 #'
 #' @examples
 #' GeneExpr = matrix(rpois(15,1),3,5)
-#' bfa_model = scbfa(scData = GeneExpr,X = NULL,numFactors =2)
+#' bfa_model = scBFA(scData = GeneExpr,X = NULL,numFactors =2)
 #' A = getLoading(bfa_model)
 #' @keywords export
 #' @export
@@ -598,15 +605,15 @@ getLoading <- function(modelEnv){return(modelEnv$AA)}
 #' @keywords export
 #' @export
 BinaryPCA = function(scData,X=NULL,scale. = FALSE,center = TRUE){
-
+    
     # extract raw count matrix
     # extract the class scData object
     GeneExpr = getGeneExpr(scData)
-
+    
     binaryEntry = t(GeneExpr!=0)+0
     # calculating the variance across gene detection pattern.
     binaryVariance = apply(binaryEntry,2,var)
-
+    
     # construct covariate matrix under the condition
     #whether cell-level covariates exists
     if(!is.null(X)){
