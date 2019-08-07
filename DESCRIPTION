@@ -1,5 +1,5 @@
 Package: scBFA
-Version: 0.99.917
+Version: 0.99.918
 Date: 2019-03-09
 Title: A dimensionality reduction tool using gene detection pattern to mitigate noisy expression profile of scRNA-seq
 Description: This package is designed to model gene detection pattern of scRNA-seq through a binary factor analysis model. This model allows user to pass into a cell level covariate matrix X and gene level covariate matrix Q to account for nuisance variance(e.g batch effect), and it will output a low dimensional embedding matrix for downstream analysis.
