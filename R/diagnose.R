@@ -30,8 +30,20 @@
 
 diagnose <- function(scData,sampleInfo = NULL,disperType = "Fitted",diagnose_feature="dispersion"){
         # colData should be data.frame that consists of feature matrix
-        # read scData
+        # read data based on which class the input scData is
+        
         GeneExpr = getGeneExpr(scData)
+        
+        # check the input of disperType and diagnose_feature
+        match.arg(disperType, c("Fitted", "Map", "GeneEst"))
+        if(!disperType %in% c("Fitted", "Map", "GeneEst")){
+            stop('The input for disperType argument has to be among "Fitted", "Map" or "GeneEst"')
+        }
+        match.arg(diagnose_feature,c("dispersion","GDR"))
+        if(!diagnose_feature %in% c("dispersion","GDR")){
+            stop('The input for diagnose_feature argument has to be "dispersion" or "GDR"')
+        }           
+        
         # if sampleInfo matrix is NULL, make them to be column 1
         if(is.null(sampleInfo)){
 
