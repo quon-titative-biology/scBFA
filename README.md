@@ -4,5 +4,5 @@ Single cell Binary Factor Analysis (scBFA) and Binary PCA - These are tools for 
 
 A user can install scBFA currently via the following command
 
-library(devtools)\
-install_github("quon-titative-biology/scBFA")
+    library(devtools)\
+    install_github("quon-titative-biology/scBFA")
