@@ -4,9 +4,19 @@
 \alias{scBFA}
 \title{Perform BFA model on the expression profile}
 \usage{
-scBFA(scData, numFactors, X = NULL, Q = NULL, maxit = 300,
-  method = "L-BFGS-B", initCellcoef = NULL, updateCellcoef = TRUE,
-  updateGenecoef = TRUE)
+scBFA(
+  scData,
+  numFactors,
+  X = NULL,
+  Q = NULL,
+  maxit = 300,
+  method = "L-BFGS-B",
+  initCellcoef = NULL,
+  updateCellcoef = TRUE,
+  updateGenecoef = TRUE,
+  NUM_CELLS_PER_CHUNK = 5000,
+  doChunking = FALSE
+)
 }
 \arguments{
 \item{scData}{can be a raw count matrix,
@@ -43,6 +53,13 @@ the user can keep the initialization of coefficients as known estimate.}
 N by T gene-specific coefficient matrix.
 Again, when there is no gene level covariate matrix,
 this value should be FALSE by default.}
+
+\item{NUM_CELLS_PER_CHUNK}{scBFA can run out of memory on large datasets, so
+we can chunk up computations to avoid this if necessary. NUM_CELLS_PER_CHUNK
+is the number of cells per 'chunk' computed. Shrink if running out of mem.}
+
+\item{doChunking}{Use memory-efficient (but slower) chunking. Will do automatically
+if the chunk size is specified to be smaller than the # of cells in dataset.}
 }
 \value{
 A model environment containing all parameter space of a BFA model

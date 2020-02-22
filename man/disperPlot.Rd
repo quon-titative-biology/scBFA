@@ -4,9 +4,8 @@
 \name{disperPlot}
 \alias{disperPlot}
 \title{Reference dataset(disperPlot)}
-\format{A 53198 x 4 data frame}
 \usage{
-disperPlot
+data(disperPlot)
 }
 \description{
 A dataframe contains all the gene-wise dispersion estimates loess curve for 14 datasets we benchmarked in Figure 2.a
@@ -19,4 +18,4 @@ meantpm is average tpm value calculated per gene
 dataset are nams for datasets
 variance is  gene selection method, here is HEG vs HVG
 }
-\keyword{datasets}
+\keyword{data}

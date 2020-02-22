@@ -4,9 +4,8 @@
 \name{celltype_toy}
 \alias{celltype_toy}
 \title{toy cell type vector with 3 cell types generated for 5 cells in toy dataset}
-\format{A vector of length 5 contains 3 cell types}
 \usage{
-celltype_toy
+data(celltype_toy)
 }
 \description{
 The cell type vector is generated from the following code
@@ -14,4 +13,4 @@ The cell type vector is generated from the following code
 \details{
 celltype = as.factor(sample(c(1,2,3),5,replace = TRUE))
 }
-\keyword{datasets}
+\keyword{data}

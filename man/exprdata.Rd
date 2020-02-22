@@ -4,16 +4,15 @@
 \name{exprdata}
 \alias{exprdata}
 \title{scRNA-seq dataset(exprdata)}
-\format{A 100 x 950 matrix with gene counts value}
-\source{
-\url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
-}
 \usage{
-exprdata
+data(exprdata)
 }
 \description{
 A matrix contains 950 cells and 500 genes. The source of this dataset is cDC/
 pre-DC cells(see supplementary files)
 We subset most variant 100 genes  as  example scRNA-seq dataset(exprdata)
 }
-\keyword{datasets}
+\references{
+\url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
+}
+\keyword{data}

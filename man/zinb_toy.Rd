@@ -4,10 +4,8 @@
 \name{zinb_toy}
 \alias{zinb_toy}
 \title{example zinb object after fitting a toy dataset with 5 cells and 10 genes}
-\format{A ZinbModel class contains all of its parameters after fitting
-a toy dataset}
 \usage{
-zinb_toy
+data(zinb_toy)
 }
 \description{
 The toy dataset is generated from the following code
@@ -18,4 +16,4 @@ colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
 celltype = as.factor(sample(c(1,2,3),5,replace = TRUE))
 zinb = zinbFit(Y = GeneExpr,K=2)
 }
-\keyword{datasets}
+\keyword{data}

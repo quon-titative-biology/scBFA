@@ -5,8 +5,7 @@
 \title{simulation to generate scRNA-seq data with varying level of
 gene detection noise versus gene count noise}
 \usage{
-scNoiseSim(zinb, celltype, disper, var_dropout = 1, var_count = 1,
-  delta)
+scNoiseSim(zinb, celltype, disper, var_dropout = 1, var_count = 1, delta)
 }
 \arguments{
 \item{zinb}{a ZINB-WaVE object representing ZINB-WaVE fit

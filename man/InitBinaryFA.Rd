@@ -5,8 +5,19 @@
 \title{This function should be called to initialize input parameters into the
 main scBFA function}
 \usage{
-InitBinaryFA(modelEnv, GeneExpr, numFactors, epsilon, X = NULL,
-  Q = NULL, initCellcoef, updateCellcoef, updateGenecoef)
+InitBinaryFA(
+  modelEnv,
+  GeneExpr,
+  numFactors,
+  epsilon,
+  X = NULL,
+  Q = NULL,
+  initCellcoef,
+  updateCellcoef,
+  updateGenecoef,
+  NUM_CELLS_PER_CHUNK = min(ncol(GeneExpr), 50000),
+  doChunking = (NUM_CELLS_PER_CHUNK < modelEnv$numCells)
+)
 }
 \arguments{
 \item{modelEnv}{Empty R environment variable to contain following parameters:
@@ -43,6 +54,13 @@ the user can keep the initialization of coefficients as known estimate.}
 N by T gene-specific coefficient matrix.
 Again, when there is no gene level covariate matrix,
 this value should be FALSE by default.}
+
+\item{NUM_CELLS_PER_CHUNK}{scBFA can run out of memory on large datasets, so
+we can chunk up computations to avoid this if necessary. NUM_CELLS_PER_CHUNK
+is the number of cells per 'chunk' computed. Shrink if running out of mem.}
+
+\item{doChunking}{Use memory-efficient (but slower) chunking. Will do automatically
+if the chunk size is specified to be smaller than the # of cells in dataset.}
 }
 \value{
 A model environment containing the following parameters:

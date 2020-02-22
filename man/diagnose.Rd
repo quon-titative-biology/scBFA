@@ -5,8 +5,12 @@
 \title{Perform diagnoisis of dispersion on the expression profile to check whether
 scBFA works on specific dataset}
 \usage{
-diagnose(scData, sampleInfo = NULL, disperType = "Fitted",
-  diagnose_feature = "dispersion")
+diagnose(
+  scData,
+  sampleInfo = NULL,
+  disperType = "Fitted",
+  diagnose_feature = "dispersion"
+)
 }
 \arguments{
 \item{scData}{can be a raw count matrix,
