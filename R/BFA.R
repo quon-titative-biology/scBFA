@@ -30,7 +30,11 @@
 #' N by T gene-specific coefficient matrix.
 #' Again, when there is no gene level covariate matrix,
 #' this value should be FALSE by default.
-#'
+#' @param NUM_CELLS_PER_CHUNK scBFA can run out of memory on large datasets, so
+#' we can chunk up computations to avoid this if necessary. NUM_CELLS_PER_CHUNK
+#' is the number of cells per 'chunk' computed. Shrink if running out of mem.
+#' @param doChunking Use memory-efficient (but slower) chunking. Will do automatically
+#' if the chunk size is specified to be smaller than the # of cells in dataset.
 #' @keywords internal
 #'
 
@@ -42,49 +46,59 @@ InitBinaryFA <- function(modelEnv,
                          Q = NULL,
                          initCellcoef,
                          updateCellcoef,
-                         updateGenecoef){
-    
+                         updateGenecoef,
+                         NUM_CELLS_PER_CHUNK = min(ncol(GeneExpr), 50000),
+                         doChunking = (NUM_CELLS_PER_CHUNK < modelEnv$numCells)){
+
     modelEnv$numCells <- ncol(GeneExpr)
-    
+
     modelEnv$numGenes <- nrow(GeneExpr)
-    
+
     modelEnv$numFactors <- numFactors
-    
-    
+
+    modelEnv$NUM_CELLS_PER_CHUNK = NUM_CELLS_PER_CHUNK;
+    modelEnv$doChunking = doChunking; #only chunk if necessary
+
+    #if we need to chunk, calculate the start and end indices of each block
+    if (modelEnv$doChunking) {
+        modelEnv$CHUNK_START_IX = seq(from=1,to=modelEnv$numCells,by=NUM_CELLS_PER_CHUNK);
+        modelEnv$CHUNK_END_IX = c(modelEnv$CHUNK_START_IX[2:length(modelEnv$CHUNK_START_IX)]-1,modelEnv$numCells);
+    }
+
     # Note that X doesn't contain intercept since intercept is not regularized
     #Cell wise Intercept is parameterized as U in the later initialization
     if(!is.null(X)){
         modelEnv$X <- X
-        
+
         modelEnv$numCoef_X <- ncol(modelEnv$X)
-        
+
     }else if(is.null(X)){
-        
+
         modelEnv$X <- matrix(0,nrow = modelEnv$numCells,ncol = 1)
-        
+
         modelEnv$numCoef_X <- ncol(modelEnv$X)
-        
+
     }
-    
+
     # Note that Q doesn't contain intercept since intercept is not regularized
     #Gene wise Intercept is parameterized as V in the later initialization
     if(!is.null(Q)){
-        
+
         modelEnv$Q <- Q
-        
+
         modelEnv$numCoef_Q<- ncol(modelEnv$Q)
-        
+
     }else if(is.null(Q)){
-        
+
         modelEnv$Q <- matrix(0,nrow = modelEnv$numGenes,ncol = 1)
-        
+
         modelEnv$numCoef_Q <- ncol(modelEnv$Q)
-        
+
     }
-    
-    
-    
-    
+
+
+
+
     # Initialization of N by K low dimensional embedding matrix
     modelEnv$ZZ <- matrix(rnorm(modelEnv$numCells * modelEnv$numFactors),
                           nrow = modelEnv$numCells, ncol = modelEnv$numFactors)
@@ -109,9 +123,9 @@ InitBinaryFA <- function(modelEnv,
         # then initialize coefficient beta with user-provided initialization
         modelEnv$beta <- initCellcoef
     }
-    
+
     modelEnv$updateCellcoef = updateCellcoef
-    
+
     # if there is no cell covariate matrix,
     # then we don't update coefficient matrix to avoid extra computation
     if(is.null(X)){
@@ -126,13 +140,15 @@ InitBinaryFA <- function(modelEnv,
                 not updating gene coefficient matrix")
         modelEnv$updateGenecoef = FALSE
     }
-    
-    
+
+    #browser()
     # Matrix B: Denoting whether a gene is detected
-    modelEnv$BB <- t((GeneExpr+0)!=0) + 0
+    #modelEnv$BB <- t((GeneExpr+0)!=0) + 0
+    modelEnv$BB <- t(as((GeneExpr!=0)+0, "sparseMatrix"))
+
     # Epsilon/number of cells (epsilon_1 in online methods)
     modelEnv$regularize_per_cell = (epsilon/modelEnv$numCells)
-    
+
     # Epsilon/number of genes (epsilon_2 and epsilon_3 in online methods)
     modelEnv$regularize_per_gene = (epsilon/modelEnv$numGenes)
     # Construc a long vector since the input of optim()
@@ -140,11 +156,11 @@ InitBinaryFA <- function(modelEnv,
     modelEnv$parameters <- c(AA = modelEnv$AA, ZZ = modelEnv$ZZ,
                              beta = modelEnv$beta, gamma = modelEnv$gamma,
                              UU = modelEnv$UU, VV = modelEnv$VV,epsilon = epsilon)
-    
+
     modelEnv$epsilon = epsilon
-    
+
     return(modelEnv)
-    
+
 }
 
 #' Restore the vector of parameter space into their seperated parameterization
@@ -160,7 +176,7 @@ InitBinaryFA <- function(modelEnv,
 #'
 
 restore <- function(parameters,modelEnv){
-    
+
     para_names <- names(parameters)
     param = list()
     param$ZZ <- matrix(parameters[grepl("ZZ",para_names)],
@@ -171,11 +187,12 @@ restore <- function(parameters,modelEnv){
                          nrow = modelEnv$numCoef_X,ncol = modelEnv$numGenes)
     param$gamma <- matrix(parameters[grepl("gamma",para_names)],
                           nrow = modelEnv$numCells,ncol = modelEnv$numCoef_Q)
+
     param$UU <- parameters[grepl("UU",para_names)]
     param$VV <- parameters[grepl("VV",para_names)]
     param$epsilon <- parameters[grepl("epsilon",para_names)]
     return(param)
-    
+
 }
 
 
@@ -196,37 +213,90 @@ restore <- function(parameters,modelEnv){
 #'
 
 neg_loglikelihood <- function(parameters,modelEnv){
-    
+
     param <- restore(parameters,modelEnv)
-    # Matrix product Z * A
+    # Matrix product Z * A^T
     WW <- tcrossprod(param$ZZ,param$AA)
     # linear predictor
     linearpredictor <-t(t(WW+(modelEnv$X %*% param$beta)+(param$UU))+param$VV) +
         param$gamma %*% t(modelEnv$Q)
-    
+
     Log1pexp <- log(1+exp(linearpredictor))
-    
+
     infix = is.infinite(Log1pexp)
     # Fix numberic issues if exp(linearpredictor) is too large
     if(sum(infix)>0){
-        
+
         Log1pexp[infix] <- linearpredictor[infix]
-        
+
     }
-    
+
     LL <- sum(modelEnv$BB * linearpredictor - Log1pexp)
     penalty_cell=0.5*(modelEnv$regularize_per_cell)*norm(param$ZZ,type = "F")^2+
         0.5*(modelEnv$regularize_per_cell)*norm(param$gamma,type = "F")^2
     penalty_gene=0.5*(modelEnv$regularize_per_gene)*norm(param$AA,type = "F")^2+
         0.5*(modelEnv$regularize_per_gene)*norm(param$beta,type = "F")^2
     penalizedLL <- LL - penalty_cell - penalty_gene
-    
+
     if(is.na(sum(penalizedLL))){stop("NA generated in likelihood calculation")}
-    
+
     return(-penalizedLL)
-    
+
 }
 
+
+#' Calculate negative penalized likelihood, used for calls
+#' to the optim() function.
+#'
+#' The penalized likelihood function:
+#' \eqn{f(A,Z,\beta,O,U) = \sum [lnP(B;A,Z,U,V,\beta,\gamma)]_ij -
+#' \epsilon_1 * ||A||_2^2 - \epsilon_2 * ||Z||_2^2 -
+#' \epsilon_3*||\beta||_2^2 - \epsilon_2 * ||\gamma||_2^2}
+#'
+#' @return Scalar penalized likelihood
+#' @param parameters Vectorized parameter space.
+#' @param modelEnv Environment variable contains parameter space,
+#' and global variables such as N,G,C,detection matrix B, etc
+#'
+#' @keywords internal
+#'
+
+neg_loglikelihood_chunk <- function(parameters,modelEnv){
+
+    param <- restore(parameters,modelEnv)
+
+    LL <- 0
+    for (ii in seq_len(length(modelEnv$CHUNK_START_IX))) {
+        currentIx = modelEnv$CHUNK_START_IX[ii]:modelEnv$CHUNK_END_IX[ii];
+
+        # Matrix product Z * A^T
+        WW <- tcrossprod(param$ZZ[currentIx,,drop=FALSE],param$AA)
+        # linear predictor
+        linearpredictor <-t(t(WW+(modelEnv$X[currentIx,,drop=FALSE] %*% param$beta)+(param$UU[currentIx]))+param$VV) +
+            param$gamma[currentIx,,drop=FALSE] %*% t(modelEnv$Q)
+
+        Log1pexp <- log(1+exp(linearpredictor))
+
+        infix = is.infinite(Log1pexp)
+        # Fix numberic issues if exp(linearpredictor) is too large
+        if(sum(infix)>0){
+            Log1pexp[infix] <- linearpredictor[infix]
+        }
+
+        LL <- LL + sum(modelEnv$BB[currentIx,,drop=FALSE] * linearpredictor - Log1pexp)
+    };
+
+    penalty_cell=0.5*(modelEnv$regularize_per_cell)*norm(param$ZZ,type = "F")^2+
+        0.5*(modelEnv$regularize_per_cell)*norm(param$gamma,type = "F")^2
+    penalty_gene=0.5*(modelEnv$regularize_per_gene)*norm(param$AA,type = "F")^2+
+        0.5*(modelEnv$regularize_per_gene)*norm(param$beta,type = "F")^2
+    penalizedLL <- LL - penalty_cell - penalty_gene
+
+    if(is.na(sum(penalizedLL))){stop("NA generated in likelihood calculation")}
+
+    return(-penalizedLL)
+
+}
 #' Calculate gradient of the negative log likelihood,
 #' used for calls to the optim() function.
 #'
@@ -240,7 +310,7 @@ neg_loglikelihood <- function(parameters,modelEnv){
 #'
 
 gradient <- function(parameters,modelEnv){
-    
+
     param <- restore(parameters,modelEnv)
     # Matrix product Z * A
     WW = tcrossprod(param$ZZ,param$AA)
@@ -266,18 +336,95 @@ gradient <- function(parameters,modelEnv){
     }else if(!modelEnv$updateGenecoef){
         gr_gamma = 0 * param$gamma
     }
-    
+
     # Gradient of U
     gr_UU <- rowSums(common)
     # Gradient of O
     gr_VV <- colSums(common)
     # Gradient vector
-    grad<- c(gr_AA, gr_ZZ, gr_beta,gr_gamma,gr_UU,gr_VV, 0)
-    
+    grad<- c(as.matrix(gr_AA), as.matrix(gr_ZZ), as.matrix(gr_beta),as.matrix(gr_gamma),gr_UU,gr_VV, 0)
+
     if(is.na(sum(grad))){stop("NA generated in gradient calculation")}
-    
+
     return(-grad)
-    
+
+}
+#' Calculate gradient of the negative log likelihood,
+#' used for calls to the optim() function.
+#'
+#' @return Vectorized gradient
+#'
+#' @param parameters Vectorized parameter space.
+#' @param modelEnv Environment variable contains parameter space,
+#' and global variables such as N,G,C,detection matrix B, etc
+#' @keywords export
+#'
+
+gradient_chunk <- function(parameters,modelEnv){
+
+    param <- restore(parameters,modelEnv)
+    gr_AA <- matrix(0, nrow(param$AA), ncol(param$AA)); #initialized to 0, since we have to sum
+    gr_ZZ <- matrix(NA, nrow(param$ZZ), ncol(param$ZZ)); #initialized to NA, since we replace, so shouldn't be NAs at the end
+    gr_beta <- matrix(0, nrow(param$beta), ncol(param$beta));
+    gr_gamma <- matrix(NA, nrow(param$gamma), ncol(param$gamma))
+    gr_UU = param$UU * NA
+    gr_VV = param$VV * 0
+
+    for (ii in seq_len(length(modelEnv$CHUNK_START_IX))) {
+        currentIx = modelEnv$CHUNK_START_IX[ii]:modelEnv$CHUNK_END_IX[ii];
+        # Matrix product Z * A^T
+        WW <- tcrossprod(param$ZZ[currentIx,,drop=FALSE],param$AA)
+        # linear predictor
+        linearpredictor <-t(t(WW+(modelEnv$X[currentIx,,drop=FALSE] %*% param$beta)+(param$UU[currentIx]))+param$VV) +
+            param$gamma[currentIx,,drop=FALSE] %*% t(modelEnv$Q)
+
+        #Common calulation value needed in the calculation of gradient
+        common <- modelEnv$BB[currentIx,,drop=FALSE] - (1/(1 + exp(-linearpredictor)))
+        # Gradient of A
+        gr_AA <- gr_AA + t(common) %*% param$ZZ[currentIx,,drop=FALSE]
+        # Gradient of Z: as.matrix keeps the structure even when length of current idx is 1
+        gr_ZZ[currentIx,] =as.matrix(common %*% param$AA)
+        #gr_ZZ[currentIx,,drop = F] =common %*% param$AA
+        # Gradient of beta
+        if(modelEnv$updateCellcoef){
+            gr_beta<- gr_beta +  t(t(common)%*%modelEnv$X[currentIx,,drop=FALSE])
+        }#else if(!modelEnv$updateCellcoef){
+            #gr_beta = gr_beta + 0 * param$beta
+        #}
+        # Gradient of gamma: as.matrix keeps the structure even when length of current idx is 1
+        if(modelEnv$updateGenecoef){
+            gr_gamma[currentIx,]<-as.matrix(common %*% modelEnv$Q)
+        }#else if(!modelEnv$updateGenecoef){
+          #gr_gamma[currentIx,,drop=FALSE] = 0 * param$gamma[currentIx,,drop=FALSE]
+        #}
+
+        # Gradient of U
+        gr_UU[currentIx] <- rowSums(common)
+        # Gradient of O
+        gr_VV <- gr_VV + colSums(common)
+        # Gradient vector
+    };
+
+
+    # move all the regularizer outside the loop
+    gr_AA = gr_AA - param$AA * (modelEnv$regularize_per_gene)
+    gr_ZZ = gr_ZZ - param$ZZ * (modelEnv$regularize_per_cell)
+
+    if(modelEnv$updateCellcoef){
+        gr_beta = gr_beta -param$beta*(modelEnv$regularize_per_gene)
+    } # else gr_beta would remain zeros
+
+    if(modelEnv$updateGenecoef){
+        gr_gamma = gr_gamma - param$gamma * (modelEnv$regularize_per_cell)
+        }else{
+        gr_gamma = param$gamma * 0
+    }
+    grad<- c(as.matrix(gr_AA), gr_ZZ, as.matrix(gr_beta),as.matrix(gr_gamma),gr_UU,gr_VV, 0)
+
+    if(is.na(sum(grad))){stop("NA generated in gradient calculation")}
+
+    return(-grad)
+
 }
 
 #' Optimize parameters of BFA's likelihood function
@@ -293,23 +440,31 @@ gradient <- function(parameters,modelEnv){
 #' @keywords internal
 #'
 OptimBFA <- function(modelEnv,maxit,method){
-    
-    opt <- optim(par = modelEnv$parameters,
-                 fn = neg_loglikelihood,
-                 gr = gradient,
-                 modelEnv = modelEnv,
-                 method = method,
-                 control = list(maxit =maxit))
-    
+
+    if (!modelEnv$doChunking) {
+        opt <- optim(par = modelEnv$parameters,
+                     fn = neg_loglikelihood,
+                     gr = gradient,
+                     modelEnv = modelEnv,
+                     method = method,
+                     control = list(maxit =maxit))
+    } else {
+        opt <- optim(par = modelEnv$parameters,
+                     fn = neg_loglikelihood_chunk,
+                     gr = gradient_chunk,
+                     modelEnv = modelEnv,
+                     method = method,
+                     control = list(maxit =maxit))
+    }
     param <- restore(opt$par,modelEnv)
-    
+
     for(vNames in c("AA","ZZ","beta","gamma")){
         modelEnv[[vNames]] = param[[vNames]]
     }
     for(Intercept in c("UU","VV")){
         modelEnv[[Intercept]] = matrix(param[[Intercept]],ncol = 1)
     }
-    
+
     modelEnv$parameters <- c( AA = modelEnv$AA,
                               ZZ = modelEnv$ZZ,
                               beta = modelEnv$beta,
@@ -317,9 +472,9 @@ OptimBFA <- function(modelEnv,maxit,method){
                               UU = modelEnv$UU,
                               VV = modelEnv$VV,
                               epsilon = modelEnv$epsilon)
-    
+
     return(modelEnv)
-    
+
 }
 
 #' Function to extract gene expression matrix from input observation matrix
@@ -332,6 +487,7 @@ OptimBFA <- function(modelEnv,maxit,method){
 #'
 #' @import SingleCellExperiment
 #' @import Seurat
+#' @import Matrix
 #' @importFrom SummarizedExperiment assay
 #' @importFrom methods is
 #' @examples
@@ -341,17 +497,19 @@ OptimBFA <- function(modelEnv,maxit,method){
 #' @keywords export
 #' @export
 getGeneExpr <- function(scData){
-    
+
     if(is(scData,"matrix")){
         GeneExpr = scData
     }else if(is(scData,"Seurat")){
         sce = as.SingleCellExperiment(scData)
-        GeneExpr = as.matrix(assay(sce))
+        GeneExpr = (assay(sce))
     }else if(is(scData,"SingleCellExperiment")){
-        GeneExpr = as.matrix(assay(scData))
+        GeneExpr = (assay(scData))
     }else{
         message("The class for input scData has to be a matrix, a seurat object or a singleCellExperiment object, please check and input the right class of it")
     }
+    # check if it is sparse matrix
+    return(GeneExpr)
 }
 
 
@@ -393,6 +551,11 @@ getGeneExpr <- function(scData){
 #' N by T gene-specific coefficient matrix.
 #' Again, when there is no gene level covariate matrix,
 #' this value should be FALSE by default.
+#' @param NUM_CELLS_PER_CHUNK scBFA can run out of memory on large datasets, so
+#' we can chunk up computations to avoid this if necessary. NUM_CELLS_PER_CHUNK
+#' is the number of cells per 'chunk' computed. Shrink if running out of mem.
+#' @param doChunking Use memory-efficient (but slower) chunking. Will do automatically
+#' if the chunk size is specified to be smaller than the # of cells in dataset.
 #'
 #' @importFrom zinbwave orthogonalizeTraceNorm
 #' @importFrom SummarizedExperiment assay
@@ -451,20 +614,22 @@ scBFA <- function(scData,
                   method = "L-BFGS-B",
                   initCellcoef = NULL,
                   updateCellcoef = TRUE,
-                  updateGenecoef = TRUE) {
-    
+                  updateGenecoef = TRUE,
+                  NUM_CELLS_PER_CHUNK = 5000,
+                  doChunking = FALSE) {
+
     match.arg(method, c("L-BFGS-B", "CG"))
     if(!method %in% c("L-BFGS-B", "CG")){
         stop('The input for disperType argument has to be among "L-BFGS-B", "CG"')
     }
-    
+
     # extract raw count matrix
     # extract the class scData object
     GeneExpr = getGeneExpr(scData)
-    
+
     # initialization
     modelEnv = new.env()
-    
+
     InitBinaryFA( modelEnv,
                   GeneExpr = GeneExpr,
                   X= X,
@@ -473,7 +638,9 @@ scBFA <- function(scData,
                   epsilon =max(dim(GeneExpr)),
                   initCellcoef = initCellcoef,
                   updateCellcoef = updateCellcoef,
-                  updateGenecoef = updateGenecoef)
+                  updateGenecoef = updateGenecoef,
+                  NUM_CELLS_PER_CHUNK = NUM_CELLS_PER_CHUNK,
+                  doChunking = doChunking)
     # optimization
     modelEnv = OptimBFA(modelEnv,maxit = maxit,method = method)
     # Orthogonalization
@@ -481,10 +648,10 @@ scBFA <- function(scData,
                                                   V = t(modelEnv$AA),
                                                   a=0.5*(modelEnv$regularize_per_cell),
                                                   b=0.5*(modelEnv$regularize_per_gene))
-    
+
     modelEnv$AA = t(orthogonalizefactors$V)
     modelEnv$ZZ = orthogonalizefactors$U
-    
+
     return(modelEnv)
 }
 
@@ -502,6 +669,8 @@ scBFA <- function(scData,
 #' @keywords export
 #' @export
 getScore <- function(modelEnv){return(modelEnv$ZZ)}
+
+
 
 #' Function to get low dimensional loading matrix
 #'
@@ -605,7 +774,7 @@ getLoading <- function(modelEnv){return(modelEnv$AA)}
 #' @keywords export
 #' @export
 BinaryPCA = function(scData,X=NULL,scale. = FALSE,center = TRUE){
-    
+
     # extract raw count matrix
     # extract the class scData object
     GeneExpr = getGeneExpr(scData)
@@ -613,7 +782,7 @@ BinaryPCA = function(scData,X=NULL,scale. = FALSE,center = TRUE){
     binaryEntry = t(GeneExpr!=0)+0
     # calculating the variance across gene detection pattern.
     binaryVariance = apply(binaryEntry,2,var)
-    
+
     # construct covariate matrix under the condition
     #whether cell-level covariates exists
     if(!is.null(X)){
@@ -624,7 +793,8 @@ BinaryPCA = function(scData,X=NULL,scale. = FALSE,center = TRUE){
     # obtain residuals of linear regression of binarized expression profile.
     # Note that genes with gene detection pattern doesn't vary across cells
     # gets removed at the beginning
-    res <- residuals(lm(binaryEntry[,binaryVariance!=0] ~X))
+    #browser()
+    res <- residuals(lm(as.matrix(binaryEntry[,binaryVariance!=0]) ~X))
     pca <- prcomp(res,scale. = scale.,center = center)
     return(pca)
 }
