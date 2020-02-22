@@ -4,18 +4,23 @@
 #' pre-DC cells(see supplementary files)
 #' We subset most variant 100 genes  as  example scRNA-seq dataset(exprdata)
 #'
-#' @format A 100 x 950 matrix with gene counts value
-#' @source \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
-"exprdata"
+#' @name exprdata
+#' @docType data
+#' @references \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
+#' @keywords data
+#' @usage data(exprdata)
+NULL
 
 #' Cell types as labels of example scRNA-seq dataset(exprdata)
 #'
 #' A vector contains the cell types  as labels for cells in
 #' example scRNA-seq dataset(exprdata)
-#'
-#' @format A vector contains 4 cell types with its length 950
-#' @source \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
-"celltype"
+#' @name celltype
+#' @docType data
+#' @references \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE89232}
+#' @keywords data
+#' @usage data(celltype)
+NULL
 
 #' example zinb object after fitting a toy dataset with 5 cells and 10 genes
 #'
@@ -26,10 +31,12 @@
 #' colnames(GeneExpr) = paste0("cell",seq_len(ncol(GeneExpr)))
 #' celltype = as.factor(sample(c(1,2,3),5,replace = TRUE))
 #' zinb = zinbFit(Y = GeneExpr,K=2)
-#'
-#' @format A ZinbModel class contains all of its parameters after fitting
-#' a toy dataset
-"zinb_toy"
+#' @name zinb_toy
+#' @docType data
+#' @keywords data
+#' @usage data(zinb_toy)
+NULL
+
 
 
 #' toy cell type vector with 3 cell types generated for 5 cells in toy dataset
@@ -38,8 +45,12 @@
 #'
 #' celltype = as.factor(sample(c(1,2,3),5,replace = TRUE))
 #'
-#' @format A vector of length 5 contains 3 cell types
-"celltype_toy"
+#' @name celltype_toy
+#' @docType data
+#' @keywords data
+#' @usage data(celltype_toy)
+NULL
+
 
 
 #' Reference dataset(disperPlot)
@@ -52,5 +63,9 @@
 #' meantpm is average tpm value calculated per gene
 #' dataset are nams for datasets
 #' variance is  gene selection method, here is HEG vs HVG
-#' @format A 53198 x 4 data frame
-"disperPlot"
+#' @name disperPlot
+#' @docType data
+#' @keywords data
+#' @usage data(disperPlot)
+NULL
+
